@@ -70,6 +70,7 @@ for query in query_list:
 	# For every app run for the current query, collect all the info #
 	#################################################
 	app_list = open(final_result_dir+"/../apps_"+query+".txt","r").read().split("\n")
+        app_list.pop()
 	for app in app_list:
 		# Input files for the specific app
 		rmLog = open(working_dir+"/"+app+".RMLOG.txt","r")
