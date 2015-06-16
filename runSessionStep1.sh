@@ -27,7 +27,7 @@ do
 		echo "Get query explain from hive..."
                 cp $CURDIR/queries/my_init.sql scratch/init.sql
                 sed -i s/DB_NAME/$DB_NAME/g scratch/init.sql
-		foo=$(hive -i temp/init.sql -f scratch/deleteme.tmp)
+		foo=$(hive -i scratch/init.sql -f scratch/deleteme.tmp)
 		echo "$foo" > scratch/deleteme.tmp
 		python buildDeps.py scratch/deleteme.tmp fetched/session/${QUERY}_dependencies.bin
 		echo "Dependencies loaded in fetched/session/${QUERY}_dependencies.bin"
