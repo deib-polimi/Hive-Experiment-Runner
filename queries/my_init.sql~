@@ -1,0 +1,2 @@
+use tpcds_bin_partitioned_orc_5;
+set hive.execution.engine=tez;
