@@ -61,12 +61,12 @@ for line in open("config/python.conf","r").read().splitlines():
 			ganglia = True
 
 for line in open("config/variables.sh","r").read().splitlines():
-	if line[1]!="#":
+	if line[0]!="#":
 		sline = line.rstrip().split("=")
-		if "LOG_PATH" in sline[1]:
-			log_path = sline[2]
-		elif "MASTER" in sline[1]:
-			master = sline[2].strip("\"")
+		if "LOG_PATH" in sline[0]:
+			log_path = sline[1]
+		elif "MASTER" in sline[0]:
+			master = sline[1].strip("\"")
 
 app = sys.argv[1]
 path = sys.argv[2]

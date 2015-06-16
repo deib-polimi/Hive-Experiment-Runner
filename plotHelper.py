@@ -11,8 +11,8 @@ tracker = ""
 
 for line in open("config/python.conf","r").read().splitlines():
 	sline = line.rstrip().split(" ")
-        if "YEAR" in sline[0]:
-        	YEAR = int(sline[1])
+	if "YEAR" in sline[0]:
+		YEAR = int(sline[1])
 	elif "GANGLIA_SAMPLE_RATE" in sline[0]:
 		GANGLIA_SAMPLE_RATE = int(sline[1])
 	elif "DSTAT_SAMPLE_RATE" in sline[0]:

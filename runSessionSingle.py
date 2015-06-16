@@ -8,18 +8,16 @@ h2s_uri = "UNSETH2S"
 databaseName = 'UNSETDB'
 data = (sys.argv[1],sys.argv[2],sys.argv[3])
 
-
 for line in open("config/variables.sh","r").read().splitlines():
-	if line[1]!="#":
+	if line[0]!="#":
 		sline = line.rstrip().split("=")
-		if "HIVE_SERVER2" in sline[1]:
-			h2s_uri = sline[2]
-		elif "SCALE" in sline[1]:
-			scale = sline[2]
-		elif "DB_NAME" in sline[1]:
-			databaseName = sline[2].strip("\"")
+		if "HIVE_SERVER2" in sline[0]:
+			h2s_uri = sline[1]
+		elif "SCALE" in sline[0]:
+			scale = sline[1]
+		elif "DB_NAME" in sline[0]:
+			databaseName = sline[1].strip("\"")
 databaseName = databaseName.replace("$SCALE", scale)
-
 
 username = data[0]
 query = open(os.path.join(sys.path[0], "queries/"+data[2]+".sql"),"r").read().replace("\n"," ").replace(";","") # Hopefully this is enough, investigate further specific replacement
