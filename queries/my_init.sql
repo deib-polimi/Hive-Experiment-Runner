@@ -1,2 +1,2 @@
-use tpcds_text_250;
+use DB_NAME;
 set hive.execution.engine=tez;

@@ -90,7 +90,11 @@ do
 			explain_query="explain ${q}"
 			echo "$explain_query" > deleteme.tmp
 			echo "Get query explain from hive..."
-			foo=$(hive -i $CURDIR/queries/my_init.sql -f deleteme.tmp)
+
+			mkdir -p temp
+			cp $CURDIR/queries/my_init.sql temp/init.sql
+			sed -i s/DB_NAME/$DB_NAME/g temp/init.sql
+			foo=$(hive -i temp/init.sql -f deleteme.tmp)
 			echo "$foo" > deleteme.tmp
 			python buildDeps.py deleteme.tmp fetched/$QUERYNAME/dependencies.bin
 			echo "Dependencies loaded in fetched/$QUERYNAME/dependencies.bin"
@@ -107,7 +111,7 @@ do
 			echo "Running query. Attempt $COUNTER"
 			touch start.tmp
 			TST=$(date +"%T.%3N")
-			hive -i $CURDIR/queries/my_init.sql -f $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION &> temp.tmp
+			hive -i temp/init.sql -f $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION &> temp.tmp
 			TND=$(date +"%T.%3N")
 			touch -d "-120 seconds" end.tmp
 			# If the execution of the query took more than 2 minute (usually it takes 50 secs),

@@ -25,7 +25,11 @@ do
 		explain_query="explain ${q}"
 		echo "$explain_query" > deleteme.tmp
 		echo "Get query explain from hive..."
-		foo=$(hive -i $CURDIR/queries/my_init.sql -f deleteme.tmp)
+
+		mkdir -p temp
+                cp $CURDIR/queries/my_init.sql temp/init.sql
+                sed -i s/DB_NAME/$DB_NAME/g temp/init.sql
+		foo=$(hive -i temp/init.sql -f deleteme.tmp)
 		echo "$foo" > deleteme.tmp
 		python buildDeps.py deleteme.tmp fetched/session/${QUERY}_dependencies.bin
 		echo "Dependencies loaded in fetched/session/${QUERY}_dependencies.bin"

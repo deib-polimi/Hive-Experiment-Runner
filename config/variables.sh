@@ -18,6 +18,8 @@ QUERIES="Q6"
 
 CURUSER="gibbo"
 
+DB_NAME="tpcds_text_250"
+
 # Next lines will be parsed by python scripts, it's not a comment!
 #% hiveserver2_address slave7.mbarenet.it
 #% database_name tpcds_text_250
