@@ -18,7 +18,7 @@ do
 	rm -r -f fetched/$QUERYNAME
 	mkdir -p fetched/$QUERYNAME
 	# Renewed here and at every external loop, the incremental list is in the queries output folder
-	rm -f apps.tmp
+	rm -f scratch/apps.tmp
 
 	#echo "Sleeping..."
 	#sleep 1s
@@ -79,7 +79,7 @@ do
 
 	while [  $EXTERNALCOUNTER -le $EXTERNALITER ]; do
 		COUNTER=1
-		rm apps.tmp
+		rm scratch/apps.tmp
 		echo "Running external iteration: $EXTERNALCOUNTER"
 
 		###########################################
@@ -88,32 +88,32 @@ do
 		if [ ! -f fetched/$QUERYNAME/dependencies.bin ]; then
 			q=$(cat $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION)
 			explain_query="explain ${q}"
-			echo "$explain_query" > deleteme.tmp
+			echo "$explain_query" > scratch/deleteme.tmp
 			echo "Get query explain from hive..."
-			foo=$(hive -i $CURDIR/queries/my_init.sql -f deleteme.tmp)
-			echo "$foo" > deleteme.tmp
-			python buildDeps.py deleteme.tmp fetched/$QUERYNAME/dependencies.bin
+			foo=$(hive -i $CURDIR/queries/my_init.sql -f scratch/deleteme.tmp)
+			echo "$foo" > scratch/deleteme.tmp
+			python buildDeps.py scratch/deleteme.tmp fetched/$QUERYNAME/dependencies.bin
 			echo "Dependencies loaded in fetched/$QUERYNAME/dependencies.bin"
-			rm deleteme.tmp
+			rm scratch/deleteme.tmp
 			else
 			echo "Dependencies file already there, skipping..."
 		fi
 
 
 		#############################################################################################
-		# Run n times our query, save the application id in apps.tmp and fetched/$QUERYNAME/apps_$QUERYNAME.txt #
+		# Run n times our query, save the application id in scratch/apps.tmp and fetched/$QUERYNAME/apps_$QUERYNAME.txt #
 		#############################################################################################
 		while [  $COUNTER -le $INTERNALITER ]; do
 			echo "Running query. Attempt $COUNTER"
-			touch start.tmp
+			touch scratch/start.tmp
 			TST=$(date +"%T.%3N")
-			hive -i $CURDIR/queries/my_init.sql -f $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION &> temp.tmp
+			hive -i $CURDIR/queries/my_init.sql -f $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION &> scratch/temp.tmp
 			TND=$(date +"%T.%3N")
-			touch -d "-120 seconds" end.tmp
+			touch -d "-120 seconds" scratch/end.tmp
 			# If the execution of the query took more than 2 minute (usually it takes 50 secs),
 			# the cluster could have stalled at some point, ignore this execution
 			# Skip this on production
-			if [ end.tmp -nt start.tmp ] && [ $ISPOLICLOUD -eq 1 ]; then
+			if [ scratch/end.tmp -nt scratch/start.tmp ] && [ $ISPOLICLOUD -eq 1 ]; then
 				echo "skipping current execution because it took too long"
 				EXCEED=$(( $EXCEED + 1 ))
 				# Wait 1 minutes for the cluster to recover
@@ -121,7 +121,7 @@ do
 				sleep 60s
 				continue
 			else
-				# Look for the application id in the hive output and save it in apps.tmp
+				# Look for the application id in the hive output and save it in scratch/apps.tmp
 				strresult="NONE"
 
 				##########################################
@@ -134,11 +134,11 @@ do
 						strresult=${BASH_REMATCH[1]}
 						echo "Finished app: $strresult"
 						echo "$strresult" >> fetched/$QUERYNAME/apps_$QUERYNAME.txt
-						echo "$strresult" >> apps.tmp
+						echo "$strresult" >> scratch/apps.tmp
 						echo "${strresult}\n${TST}\t${TND}">> fetched/$QUERYNAME/real_start_end.txt
 						break
 					fi
-				done < temp.tmp
+				done < scratch/temp.tmp
 			fi
 			COUNTER=$(( $COUNTER + 1 ))
 		done
@@ -193,7 +193,7 @@ do
 				CATTEMPT=$(( $CATTEMPT + 1 ))
 			done
 
-		done < apps.tmp
+		done < scratch/apps.tmp
 
 		rm -f /tmp/log.txt
 

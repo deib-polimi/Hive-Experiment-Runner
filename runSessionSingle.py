@@ -37,7 +37,7 @@ with pyhs2.connect(host=h2s_uri,
 		while True:
 			cur.execute(query)
 			time.sleep(random.expovariate(0.1))
-			if os.path.isfile("stopSession.tmp"):
+			if os.path.isfile("scratch/stopSession.tmp"):
 				break
 		#Return column info from query
 		#print cur.getSchema()
