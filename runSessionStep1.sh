@@ -98,7 +98,7 @@ while read line
                 arguments=$line
                 echo "Running session: ${arguments}"
 		nohup python runSessionSingle.py $arguments > /dev/null 2> /dev/null < /dev/null &
-        done < ssdata.txt
+        done < config/ssdata.txt
 
 read -p "Press [Enter] key to stop iterating sessions..."
 touch stopSession.tmp
