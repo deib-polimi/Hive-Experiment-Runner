@@ -5,7 +5,7 @@
 
 
 # SETUP
-source variables.sh
+source config/variables.sh
 CURDIR=$(pwd)
 CURHOST=$(hostname)
 

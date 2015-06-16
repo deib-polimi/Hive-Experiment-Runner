@@ -26,9 +26,9 @@ queues_target_url_suffix = "UNSET"
 queue_list = "UNSET"
 
 ###############################
-# Set variables from variables.sh file #
+# Set variables from config/variables.sh file #
 ###############################
-for line in open("variables.sh","r").read().splitlines():
+for line in open("config/variables.sh","r").read().splitlines():
 	if line[:2]=="#%":
 		sline = line.rstrip().split(" ")
 		if "log_path" in sline[1]:

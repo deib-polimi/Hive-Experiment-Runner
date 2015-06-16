@@ -3,7 +3,7 @@
 
 # These are supposed to be all the queries also present in runSession.py
 
-source variables.sh
+source config/variables.sh
 
 CURHOST=$(hostname)
 

@@ -33,7 +33,7 @@ def dateTime(some):
 # Populate list of queries to analyze #
 ##############################
 query_list = []
-for line in open("variables.sh","r").read().splitlines():
+for line in open("config/variables.sh","r").read().splitlines():
 	sline = line.split("=")
 	if "QUERIES" in sline[0]:
 		query_list = sline[1].strip("\"").split(" ")

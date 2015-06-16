@@ -9,7 +9,7 @@ databaseName = 'UNSETDB'
 data = (sys.argv[1],sys.argv[2],sys.argv[3])
 
 
-for line in open("variables.sh","r").read().splitlines():
+for line in open("config/variables.sh","r").read().splitlines():
 	if line[:2]=="#%":
 		sline = line.rstrip().split(" ")
 		if "hiveserver2_address" in sline[1]:

@@ -40,9 +40,9 @@ def dateTime(some):
 	return datetime(y,m,d,h,mm,s)
 
 ###############################
-# Set variables from variables.sh file #
+# Set variables from config/variables.sh file #
 ###############################
-for line in open("variables.sh","r").read().splitlines():
+for line in open("config/variables.sh","r").read().splitlines():
 	if line[0:2]=="#%":
 		sline = line.rstrip().split(" ")
 		if "log_path" in sline[1]:

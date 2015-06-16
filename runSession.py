@@ -7,7 +7,7 @@ import sys
 h2s_uri = "UNSETH2S"
 databaseName = 'UNSETDB'
 users = []
-for line in open("variables.sh","r").read().splitlines():
+for line in open("config/variables.sh","r").read().splitlines():
 	if line[:2]=="#@":
 		sline = line.rstrip().split(" ")
 		user = sline[1]

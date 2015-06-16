@@ -1,7 +1,7 @@
 #!/bin/bash
 # FETCH AM and RM logs
 
-source variables.sh
+source config/variables.sh
 CURHOST=$(hostname)
 
 echo "Fetch logs now"
