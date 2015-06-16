@@ -240,8 +240,8 @@ do
 	echo "Fetching dstat stats from $CURHOST"
 	cp /tmp/stats.${CURHOST}.csv fetched/$QUERYNAME/
 
-	echo "Done, check dstat files are properly populated"
-	read -p "Press [Enter] key to create dstat aggregated logs..."
+	#echo "Done, check dstat files are properly populated"
+	#read -p "Press [Enter] key to create dstat aggregated logs..."
 
 	####################################
 	# Merge all dstat logs in a global cluster log #
