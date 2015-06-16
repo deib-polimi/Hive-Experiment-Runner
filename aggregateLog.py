@@ -14,7 +14,7 @@ for line in open("config/variables.sh","r").read().splitlines():
 
 path = sys.argv[1]
 
-hosts = open(os.path.join(sys.path[0], 'hosts.txt'),'r').read().splitlines()
+hosts = open(os.path.join(sys.path[0], 'config/hosts.txt'),'r').read().splitlines()
 hosts.remove(master)
 
 #############################

@@ -69,8 +69,8 @@ for line in open("config/variables.sh","r").read().splitlines():
 app = sys.argv[1]
 path = sys.argv[2]
 
-hosts = open(os.path.join(sys.path[0], "hosts.txt"),"r").read().splitlines()
-print str(len(hosts)) + " hosts loaded from hosts.txt"
+hosts = open(os.path.join(sys.path[0], "config/hosts.txt"),"r").read().splitlines()
+print str(len(hosts)) + " hosts loaded from config/hosts.txt"
 
 #############################
 # Fetch RM log with tail command #

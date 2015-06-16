@@ -76,7 +76,7 @@ def dateTime(some):
 
 path = sys.argv[3]
 
-hosts = open(os.path.join(sys.path[0], "hosts.txt"),"r").read().splitlines()
+hosts = open(os.path.join(sys.path[0], "config/hosts.txt"),"r").read().splitlines()
 
 start_str = r'.+Storing application with id (application_[0-9]+_[0-9]+)'
 print "Fetching application RM log for all sessions"

@@ -39,7 +39,7 @@ do
 			fi
                         echo "Stopping dstat on $host"
                         < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
-                done < hosts.txt
+                done < config/hosts.txt
         # Plus localhost
 	echo "Stopping dstat on $CURHOST"
         pkill -f '.+/usr/bin/dstat.+'
@@ -53,7 +53,7 @@ do
                         fi
                         echo "Cleaning old dstat log on $host"
                         < /dev/null ssh -n -f ${CURUSER}@$host "rm -f /tmp/*.csv"
-                done < hosts.txt
+                done < config/hosts.txt
         # Plus localhost
         rm -f /tmp/*.csv
 
@@ -70,7 +70,7 @@ do
                         fi
 			echo "Starting dstat on $host"
 			< /dev/null ssh -n -f ${CURUSER}@$host "nohup dstat -tcmnd --output /tmp/stats.$host.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
-		done < hosts.txt
+		done < config/hosts.txt
 	#Plus localhost
 	echo "Starting dstat on $CURHOST"
 	dstat -tcmnd --output /tmp/stats.${CURHOST}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &
@@ -215,7 +215,7 @@ do
                         fi
 			echo "Stopping dstat on $host"
 			< /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
-		done < hosts.txt
+		done < config/hosts.txt
 	# Plus localhost
 	echo "Stopping dstat on $CURHOST"
 	pkill -f '.+/usr/bin/dstat.+'
@@ -233,7 +233,7 @@ do
                         fi
 			echo "Fetching dstat stats from $host"
 			< /dev/null scp ${CURUSER}@$host:/tmp/stats.$host.csv fetched/$QUERYNAME/
-		done < hosts.txt
+		done < config/hosts.txt
 	#Plus localhost
 	echo "Fetching dstat stats from $CURHOST"
 	cp /tmp/stats.${CURHOST}.csv fetched/$QUERYNAME/
