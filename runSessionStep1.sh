@@ -12,7 +12,7 @@ CURHOST=$(hostname)
 #################################################
 echo "Removing old session records"
 rm -r -I fetched/session/
-rm -f stopSession.tmp
+rm -f scratch/stopSession.tmp
 mkdir -p fetched/session
 
 ###########################################
@@ -23,17 +23,15 @@ do
 	if [ ! -f fetched/session/${QUERY}_dependencies.bin ] && [ ! -f fetched/$QUERY/dependencies.bin ]; then
 		q=$(cat $CURDIR/queries/${QUERY}.$QUERYEXTENSION)
 		explain_query="explain ${q}"
-		echo "$explain_query" > deleteme.tmp
+		echo "$explain_query" > scratch/deleteme.tmp
 		echo "Get query explain from hive..."
-
-		mkdir -p temp
-                cp $CURDIR/queries/my_init.sql temp/init.sql
-                sed -i s/DB_NAME/$DB_NAME/g temp/init.sql
-		foo=$(hive -i temp/init.sql -f deleteme.tmp)
-		echo "$foo" > deleteme.tmp
-		python buildDeps.py deleteme.tmp fetched/session/${QUERY}_dependencies.bin
+                cp $CURDIR/queries/my_init.sql scratch/init.sql
+                sed -i s/DB_NAME/$DB_NAME/g scratch/init.sql
+		foo=$(hive -i temp/init.sql -f scratch/deleteme.tmp)
+		echo "$foo" > scratch/deleteme.tmp
+		python buildDeps.py scratch/deleteme.tmp fetched/session/${QUERY}_dependencies.bin
 		echo "Dependencies loaded in fetched/session/${QUERY}_dependencies.bin"
-		rm deleteme.tmp
+		rm scratch/deleteme.tmp
 	else
 		echo "Using dependency file from single query analysis..."
 		cp fetched/$QUERY/dependencies.bin fetched/session/${QUERY}_dependencies.bin
@@ -105,7 +103,7 @@ while read line
         done < config/ssdata.txt
 
 read -p "Press [Enter] key to stop iterating sessions..."
-touch stopSession.tmp
+touch scratch/stopSession.tmp
 
 read -p "Check sessions shut down properly, then press [Enter] key to proceed..."
 
