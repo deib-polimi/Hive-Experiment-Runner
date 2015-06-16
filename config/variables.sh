@@ -2,29 +2,29 @@
 # Just some variables useful for other scripts
 
 # Scale size for datagen
-SCALE=250
+SCALE=2
 # Number of external iteration for the single query
 EXTERNALITER=1
 # Number of internal iteration for the single query
 INTERNALITER=2
 # 1 if we are on policloud and expect latency peaks
-ISPOLICLOUD=1
+ISPOLICLOUD=0
 # extension of the query script, typically sql
 QUERYEXTENSION="sql"
 # The hostname of the master node (to fetch Ganglia csv files)
 MASTER="master.mbarenet.it"
 # A list of queries to execute in the single query run, they are the ones we will execute in the session mode
-QUERIES="Q6"
+QUERIES="Q3"
 # User for ssh-ing into other nodes
 CURUSER="gibbo"
 # Database to be used
-DB_NAME="tpcds_text_250"
+DB_NAME="tpcds_text_$SCALE"
 # Path to Resource Manager log file
 LOG_PATH=/var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log
 
 # Next lines will be parsed by python scripts, it's not a comment!
 #% hiveserver2_address slave7.mbarenet.it
-#% database_name tpcds_text_250
+#% database_name tpcds_text_2
 #% log_path /var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log
 #% fetch_ganglia_metrics true
 #% ganglia_interval 15
