@@ -16,6 +16,8 @@ MASTER="master.mbarenet.it"
 # A list of queries to execute in the single query run, they are the ones we will execute in the session mode
 QUERIES="Q6"
 
+CURUSER="gibbo"
+
 # Next lines will be parsed by python scripts, it's not a comment!
 #% hiveserver2_address slave7.mbarenet.it
 #% database_name tpcds_text_250
