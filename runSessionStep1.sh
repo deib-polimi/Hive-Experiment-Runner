@@ -21,11 +21,11 @@ mkdir -p fetched/session
 for QUERY in ${QUERIES}
 do
 	if [ ! -f fetched/session/${QUERY}_dependencies.bin ] && [ ! -f fetched/$QUERY/dependencies.bin ]; then
-		q=$(cat $CURDIR/hive-testbench-hive14/sample-queries-tpcds/${QUERY}.$QUERYEXTENSION)
+		q=$(cat $CURDIR/queries/${QUERY}.$QUERYEXTENSION)
 		explain_query="explain ${q}"
 		echo "$explain_query" > deleteme.tmp
 		echo "Get query explain from hive..."
-		foo=$(hive -i $CURDIR/hive-testbench-hive14/sample-queries-tpcds/my_init.sql -f deleteme.tmp)
+		foo=$(hive -i $CURDIR/queries/my_init.sql -f deleteme.tmp)
 		echo "$foo" > deleteme.tmp
 		python buildDeps.py deleteme.tmp fetched/session/${QUERY}_dependencies.bin
 		echo "Dependencies loaded in fetched/session/${QUERY}_dependencies.bin"

@@ -19,7 +19,7 @@ for line in open("variables.sh","r").read().splitlines():
 
 
 username = data[0]
-query = open(os.path.join(sys.path[0], "hive-testbench-hive14/sample-queries-tpcds/"+data[2]+".sql"),"r").read().replace("\n"," ").replace(";","") # Hopefully this is enough, investigate further specific replacement
+query = open(os.path.join(sys.path[0], "queries/"+data[2]+".sql"),"r").read().replace("\n"," ").replace(";","") # Hopefully this is enough, investigate further specific replacement
 queue = data[1]
 
 with pyhs2.connect(host=h2s_uri,

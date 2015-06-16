@@ -86,11 +86,11 @@ do
 		# Get query explain from hive to build dependencies #
 		###########################################
 		if [ ! -f fetched/$QUERYNAME/dependencies.bin ]; then
-			q=$(cat $CURDIR/hive-testbench-hive14/sample-queries-tpcds/$QUERYNAME.$QUERYEXTENSION)
+			q=$(cat $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION)
 			explain_query="explain ${q}"
 			echo "$explain_query" > deleteme.tmp
 			echo "Get query explain from hive..."
-			foo=$(hive -i $CURDIR/hive-testbench-hive14/sample-queries-tpcds/my_init.sql -f deleteme.tmp)
+			foo=$(hive -i $CURDIR/queries/my_init.sql -f deleteme.tmp)
 			echo "$foo" > deleteme.tmp
 			python buildDeps.py deleteme.tmp fetched/$QUERYNAME/dependencies.bin
 			echo "Dependencies loaded in fetched/$QUERYNAME/dependencies.bin"
@@ -107,7 +107,7 @@ do
 			echo "Running query. Attempt $COUNTER"
 			touch start.tmp
 			TST=$(date +"%T.%3N")
-			hive -i $CURDIR/hive-testbench-hive14/sample-queries-tpcds/my_init.sql -f $CURDIR/hive-testbench-hive14/sample-queries-tpcds/$QUERYNAME.$QUERYEXTENSION &> temp.tmp
+			hive -i $CURDIR/queries/my_init.sql -f $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION &> temp.tmp
 			TND=$(date +"%T.%3N")
 			touch -d "-120 seconds" end.tmp
 			# If the execution of the query took more than 2 minute (usually it takes 50 secs),

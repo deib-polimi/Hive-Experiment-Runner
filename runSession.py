@@ -76,7 +76,7 @@ threads = []
 # Create new threads
 for element in users:
 	username = element[0]
-	query = open(os.path.join(sys.path[0], "hive-testbench-hive14/sample-queries-tpcds/"+element[1]+".sql"),"r").read().replace("\n"," ").replace(";","") # Hopefully this is enough, investigate further specific replacement
+	query = open(os.path.join(sys.path[0], "queries/"+element[1]+".sql"),"r").read().replace("\n"," ").replace(";","") # Hopefully this is enough, investigate further specific replacement
 	queue = element[2]
 	threadx = myThread(username, query, queue)
 	threads.append(threadx)
