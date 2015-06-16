@@ -51,7 +51,7 @@ while read line
 			continue
 		fi
 		echo "Stopping dstat on $host"
-		< /dev/null ssh -n -f gibbo@$host "pkill -f '.+/usr/bin/dstat.+'"
+		< /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
  	done < hosts.txt
 # Plus localhost
 echo "Stopping dstat on $CURHOST"
@@ -66,7 +66,7 @@ while read line
                         continue
                 fi
                 echo "Cleaning old dstat log on $host"
-		< /dev/null ssh -n -f gibbo@$host "rm -f /tmp/*.csv"
+		< /dev/null ssh -n -f ${CURUSER}@$host "rm -f /tmp/*.csv"
         done < hosts.txt
 # Plus localhost
 echo "Cleaning old dstat log on $CURHOST"
@@ -81,7 +81,7 @@ while read line
                         continue
                 fi
                 echo "Starting dstat on $host"
-                < /dev/null ssh -n -f gibbo@$host "nohup dstat -tcmnd --output /tmp/stats.$host.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
+                < /dev/null ssh -n -f ${CURUSER}@$host "nohup dstat -tcmnd --output /tmp/stats.$host.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
         done < hosts.txt
 # Plus localhost
 echo "Starting dstat on $CURHOST"
@@ -119,7 +119,7 @@ while read line
                         continue
                 fi
                 echo "Stopping dstat on $host"
-                < /dev/null ssh -n -f gibbo@$host "pkill -f '.+/usr/bin/dstat.+'"
+                < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
         done < hosts.txt
 # Plus localhost
 echo "Stopping dstat on $CURHOST"
@@ -142,7 +142,7 @@ while read line
                         continue
                 fi
                 echo "Fetching dstat stats from $host"
-                < /dev/null scp gibbo@$host:/tmp/stats.$host.csv fetched/session/
+                < /dev/null scp ${CURUSER}@$host:/tmp/stats.$host.csv fetched/session/
         done < hosts.txt
 # Plus localhost
 echo "Fetching dstat stats from $CURHOST"
