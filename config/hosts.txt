@@ -1,8 +1,1 @@
-master.mbarenet.it
-slave1.mbarenet.it
-slave2.mbarenet.it
-slave3.mbarenet.it
-slave4.mbarenet.it
-slave5.mbarenet.it
-slave6.mbarenet.it
-slave7.mbarenet.it
+slave2
