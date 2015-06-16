@@ -7,10 +7,11 @@ import os
 #################################################
 master = "UNSET"
 for line in open("config/variables.sh","r").read().splitlines():
-	sline = line.split("=")
-	if "MASTER" in sline[0]:
-			master = sline[1].strip("\"")
-			break
+	if line and line[0] != "#":
+		sline = line.split("=")
+		if "MASTER" in sline[0]:
+				master = sline[1].strip("\"")
+				break
 
 path = sys.argv[1]
 

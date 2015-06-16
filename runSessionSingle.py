@@ -9,7 +9,7 @@ databaseName = 'UNSETDB'
 data = (sys.argv[1],sys.argv[2],sys.argv[3])
 
 for line in open("config/variables.sh","r").read().splitlines():
-	if line[0]!="#":
+	if line and line[0] != "#":
 		sline = line.rstrip().split("=")
 		if "HIVE_SERVER2" in sline[0]:
 			h2s_uri = sline[1]

@@ -61,7 +61,7 @@ for line in open("config/python.conf","r").read().splitlines():
 			ganglia = True
 
 for line in open("config/variables.sh","r").read().splitlines():
-	if line[0]!="#":
+	if line and line[0] != "#":
 		sline = line.rstrip().split("=")
 		if "LOG_PATH" in sline[0]:
 			log_path = sline[1]

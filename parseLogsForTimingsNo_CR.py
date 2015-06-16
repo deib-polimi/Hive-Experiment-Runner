@@ -34,11 +34,12 @@ def dateTime(some):
 ##############################
 query_list = []
 for line in open("config/variables.sh","r").read().splitlines():
-	sline = line.split("=")
-	if "QUERIES" in sline[0]:
-		query_list = sline[1].strip("\"").split(" ")
-		print "Working on the following queries: "+str(query_list)
-		break
+	if line and line[0] != "#":
+		sline = line.split("=")
+		if "QUERIES" in sline[0]:
+			query_list = sline[1].strip("\"").split(" ")
+			print "Working on the following queries: "+str(query_list)
+			break
 
 #########################################################
 # Outer iteration, for every query, clean/make the query results folder #
