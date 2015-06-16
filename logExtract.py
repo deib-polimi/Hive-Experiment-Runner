@@ -39,32 +39,34 @@ def dateTime(some):
 	s = int(some.group(6))
 	return datetime(y,m,d,h,mm,s)
 
-###############################
-# Set variables from config/variables.sh file #
-###############################
+####################################
+# Set variables from config/ files #
+####################################
+for line in open("config/python.conf","r").read().splitlines():
+	sline = line.rstrip().split(" ")
+	if "ganglia_interval" in sline[1]:
+		ganglia_interval = int(sline[2])
+	elif "ganglia_base_prefix" in sline[1]:
+		ganglia_base_prefix = sline[2]
+	elif "ganglia_global_prefix" in sline[1]:
+		ganglia_global_prefix = sline[2]
+	elif "ganglia_base_inter" in sline[1]:
+		ganglia_base_inter = sline[2]
+	elif "ganglia_base_suffix" in sline[1]:
+		ganglia_base_suffix = sline[2]
+	elif "ganglia_metrics" in sline[1]:
+		ganglia_metrics = sline[2:]
+	elif "fetch_ganglia_metrics" in sline[1]:
+		if "true" in sline[2]:
+			ganglia = True
+
 for line in open("config/variables.sh","r").read().splitlines():
-	if line[0:2]=="#%":
-		sline = line.rstrip().split(" ")
-		if "log_path" in sline[1]:
-			log_path = sline[2]
-		elif "ganglia_interval" in sline[1]:
-			ganglia_interval = int(sline[2])
-		elif "ganglia_base_prefix" in sline[1]:
-			ganglia_base_prefix = sline[2]
-		elif "ganglia_global_prefix" in sline[1]:
-                        ganglia_global_prefix = sline[2]
-		elif "ganglia_base_inter" in sline[1]:
-			ganglia_base_inter = sline[2]
-		elif "ganglia_base_suffix" in sline[1]:
-			ganglia_base_suffix = sline[2]
-		elif "ganglia_metrics" in sline[1]:
-			ganglia_metrics = sline[2:]
-		elif "fetch_ganglia_metrics" in sline[1]:
-			if "true" in sline[2]:
-				ganglia = True
-	elif 'MASTER' in line[0:10]:
+	if line[1]!="#":
 		sline = line.rstrip().split("=")
-		master=sline[1].strip("\"")
+		if "LOG_PATH" in sline[1]:
+			log_path = sline[2]
+		elif "MASTER" in sline[1]:
+			master = sline[2].strip("\"")
 
 app = sys.argv[1]
 path = sys.argv[2]

@@ -10,12 +10,15 @@ data = (sys.argv[1],sys.argv[2],sys.argv[3])
 
 
 for line in open("config/variables.sh","r").read().splitlines():
-	if line[:2]=="#%":
-		sline = line.rstrip().split(" ")
-		if "hiveserver2_address" in sline[1]:
+	if line[1]!="#":
+		sline = line.rstrip().split("=")
+		if "HIVE_SERVER2" in sline[1]:
 			h2s_uri = sline[2]
-		elif "database_name" in sline[1]:
-			databaseName = sline[2]
+		elif "SCALE" in sline[1]:
+			scale = sline[2]
+		elif "DB_NAME" in sline[1]:
+			databaseName = sline[2].strip("\"")
+databaseName = databaseName.replace("$SCALE", scale)
 
 
 username = data[0]

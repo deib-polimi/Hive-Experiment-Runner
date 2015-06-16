@@ -9,15 +9,14 @@ DSTAT_SAMPLE_RATE = "UNSET"
 
 tracker = ""
 
-for line in open("config/variables.sh","r").read().splitlines():
-	if line[:2]=="#%":
-		sline = line.rstrip().split(" ")
-		if "YEAR" in sline[1]:
-			YEAR = int(sline[2])
-		elif "GANGLIA_SAMPLE_RATE" in sline[1]:
-			GANGLIA_SAMPLE_RATE = int(sline[2])
-		elif "DSTAT_SAMPLE_RATE" in sline[1]:
-			DSTAT_SAMPLE_RATE = int(sline[2]) 
+for line in open("config/python.conf","r").read().splitlines():
+	sline = line.rstrip().split(" ")
+	if "YEAR" in sline[1]:
+		YEAR = int(sline[2])
+	elif "GANGLIA_SAMPLE_RATE" in sline[1]:
+		GANGLIA_SAMPLE_RATE = int(sline[2])
+	elif "DSTAT_SAMPLE_RATE" in sline[1]:
+		DSTAT_SAMPLE_RATE = int(sline[2]) 
 
 ganglia_time = r'([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+):([0-9]+).+'
 dstat_time = r'([0-9]+)-([0-9]+) ([0-9]+):([0-9]+):([0-9]+)'
