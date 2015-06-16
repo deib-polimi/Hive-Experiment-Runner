@@ -11,7 +11,7 @@ INTERNALITER=2
 ISPOLICLOUD=0
 # extension of the query script, typically sql
 QUERYEXTENSION=sql
-# The hostname of the master node (to fetch Ganglia csv files)
+# The hostname of the node hosting the Resource Manager
 MASTER=slave1
 # A list of queries to execute in the single query run, they are the ones we will execute in the session mode
 QUERIES="Q3"
@@ -20,6 +20,6 @@ CURUSER=ubuntu
 # Database to be used
 DB_NAME="tpcds_text_$SCALE"
 # Path to Resource Manager log file
-LOG_PATH=/var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-ip-172-31-28-226.log
+LOG_PATH=/var/log/hadoop-yarn/yarn/@@RM_LOG@@
 # Host _hosting_ HiveServer2
 HIVE_SERVER2=slave2
