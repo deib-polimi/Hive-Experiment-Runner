@@ -89,10 +89,7 @@ do
 			q=$(cat $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION)
 			explain_query="explain ${q}"
 			echo "$explain_query" > scratch/deleteme.tmp
-			echo "Get query explain from hive..."
-
-
-			mkdir -p temp
+			echo "Get query explain from hive..."			
 			cp $CURDIR/queries/my_init.sql scratch/init.sql
 			sed -i s/DB_NAME/$DB_NAME/g scratch/init.sql
 			foo=$(hive -i scratch/init.sql -f scratch/deleteme.tmp)
