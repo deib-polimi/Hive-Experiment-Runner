@@ -7,3 +7,9 @@ launch Hive queries and parse their logs.
 `scratch/` hosts temporary files created by the scripts.
 
 `queries/` stores data about queries.
+
+`inst/` hosts scripts to ease installation on Instacluster.
+
+To start using these scripts, edit the configuration files, providing the
+URL to Ganglia (up to ganglia/) in `python.conf` and correctly setting
+log file path and master node in `variables.sh`.
