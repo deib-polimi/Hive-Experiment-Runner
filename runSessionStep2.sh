@@ -13,10 +13,10 @@ CATTEMPT=1
 if [ "$CURHOST" == "$MASTER" ];
 then
 	echo "Fetching RM log from local (we are on master)"
-	tail /var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log -c 20MB > /tmp/log.txt
+	tail ${LOG_PATH} -c 20MB > /tmp/log.txt
 else
         echo "Fetching RM log from master"
-        ssh $MASTER 'cat /var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log > /tmp/log.txt'
+        ssh $MASTER "cat ${LOG_PATH} > /tmp/log.txt"
         scp ${MASTER}:/tmp/log.txt /tmp/log.txt
 fi
 python logExtractForSession.py ganglia=$GANGLIA_FETCH fetched/session/
@@ -27,10 +27,10 @@ while [ $PRESULT -eq 255 ] && [ $CATTEMPT -le 15 ]; do
 	if [ "$CURHOST" == "$MASTER" ];
 	then
         	echo "Fetching RM log from local (we are on master)"
-        	cat /var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log > /tmp/log.txt
+        	cat ${LOG_PATH} > /tmp/log.txt
 	else
         	echo "Fetching RM log from master"
-        	ssh $MASTER 'cat /var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log > /tmp/log.txt'
+        	ssh $MASTER "cat ${LOG_PATH} > /tmp/log.txt"
         	scp ${MASTER}:/tmp/log.txt /tmp/log.txt
 	fi
 	python logExtractForSession.py ganglia=$GANGLIA_FETCH fetched/session/

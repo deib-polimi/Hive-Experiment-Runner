@@ -167,10 +167,10 @@ do
 				if [ "$CURHOST" == "$MASTER" ];
         	                then
                 	                echo "Fetching RM log from local (we are on master)"
-					tail /var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log -c 20MB > /tmp/log.txt
+					tail ${LOG_PATH} -c 20MB > /tmp/log.txt
                		        else
 					echo "Fetching RM log from master"
-					< /dev/null ssh $MASTER 'tail /var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log -c 20MB > /tmp/log.txt'
+					< /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
 					< /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
 				fi
 			else
@@ -183,10 +183,10 @@ do
 				if [ "$CURHOST" == "$MASTER" ];
                         	then
                         	        echo "Fetching RM log from local (we are on master)"
-                        	        tail /var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log -c 20MB > /tmp/log.txt
+                        	        tail ${LOG_PATH} -c 20MB > /tmp/log.txt
                        		else
 					echo "Fetching RM log from master"
-	                                < /dev/null ssh $MASTER 'tail /var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log -c 20MB > /tmp/log.txt'
+	                                < /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
 	                                < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
         	                fi
 				echo "Trying to fetch log again because end of RM log was not found... Attempt $CATTEMPT"

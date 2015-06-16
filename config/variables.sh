@@ -15,10 +15,12 @@ QUERYEXTENSION="sql"
 MASTER="master.mbarenet.it"
 # A list of queries to execute in the single query run, they are the ones we will execute in the session mode
 QUERIES="Q6"
-
+# User for ssh-ing into other nodes
 CURUSER="gibbo"
-
+# Database to be used
 DB_NAME="tpcds_text_250"
+# Path to Resource Manager log file
+LOG_PATH=/var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-master.mbarenet.it.log
 
 # Next lines will be parsed by python scripts, it's not a comment!
 #% hiveserver2_address slave7.mbarenet.it
