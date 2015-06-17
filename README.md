@@ -13,3 +13,5 @@ launch Hive queries and parse their logs.
 To start using these scripts, edit the configuration files, providing the
 URL to Ganglia (up to ganglia/) in `python.conf` and correctly setting
 log file path and master node in `variables.sh`.
+Further, one should install dstat on all nodes, for instance running
+`ansible` on the master, and run the `setup.sh` script from `inst/`.
