@@ -43,21 +43,21 @@ def dateTime(some):
 # Set variables from config/ files #
 ####################################
 for line in open("config/python.conf","r").read().splitlines():
-	sline = line.rstrip().split(" ")
-	if "ganglia_interval" in sline[1]:
-		ganglia_interval = int(sline[2])
-	elif "ganglia_base_prefix" in sline[1]:
-		ganglia_base_prefix = sline[2]
-	elif "ganglia_global_prefix" in sline[1]:
-		ganglia_global_prefix = sline[2]
-	elif "ganglia_base_inter" in sline[1]:
-		ganglia_base_inter = sline[2]
-	elif "ganglia_base_suffix" in sline[1]:
-		ganglia_base_suffix = sline[2]
-	elif "ganglia_metrics" in sline[1]:
-		ganglia_metrics = sline[2:]
-	elif "fetch_ganglia_metrics" in sline[1]:
-		if "true" in sline[2]:
+	sline = line.strip().split(" ")
+	if "ganglia_interval" in sline[0]:
+		ganglia_interval = int(sline[1])
+	elif "ganglia_base_prefix" in sline[0]:
+		ganglia_base_prefix = sline[1]
+	elif "ganglia_global_prefix" in sline[0]:
+		ganglia_global_prefix = sline[1]
+	elif "ganglia_base_inter" in sline[0]:
+		ganglia_base_inter = sline[1]
+	elif "ganglia_base_suffix" in sline[0]:
+		ganglia_base_suffix = sline[1]
+	elif "ganglia_metrics" in sline[0]:
+		ganglia_metrics = sline[1:]
+	elif "fetch_ganglia_metrics" in sline[0]:
+		if "true" in sline[1]:
 			ganglia = True
 
 for line in open("config/variables.sh","r").read().splitlines():
