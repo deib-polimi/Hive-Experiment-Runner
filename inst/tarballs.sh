@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sudo -su hdfs
+[ "x$(whoami)" = "xhdfs" ] || exec sudo -u hdfs sh "$0"
 
 hdfs dfs -mkdir -p /hdp/apps/2.2.6.0-2800/mapreduce
 hdfs dfs -mkdir /hdp/apps/2.2.6.0-2800/hive
@@ -14,5 +14,3 @@ hdfs dfs -chmod -R 777 /hdp
 hdfs dfs -chmod 555 /hdp/apps/2.2.6.0-2800/mapreduce/mapreduce.tar.gz
 hdfs dfs -chmod 555 /hdp/apps/2.2.6.0-2800/hive/hive.tar.gz
 hdfs dfs -chmod 555 /hdp/apps/2.2.6.0-2800/tez/tez.tar.gz
-
-exit
