@@ -2,15 +2,19 @@
 
 [ "x$(whoami)" = "xhdfs" ] || exec sudo -u hdfs sh "$0"
 
-hdfs dfs -mkdir -p /hdp/apps/2.2.6.0-2800/mapreduce
-hdfs dfs -mkdir /hdp/apps/2.2.6.0-2800/hive
-hdfs dfs -mkdir /hdp/apps/2.2.6.0-2800/tez
+VERSION=$(ls /usr/hdp | grep -v current)
+HDFS_DIR="/hdp/apps/${VERSION}"
+OS_DIR="/usr/hdp/${VERSION}"
 
-hdfs dfs -put /usr/hdp/2.2.6.0-2800/hadoop/mapreduce.tar.gz /hdp/apps/2.2.6.0-2800/mapreduce
-hdfs dfs -put /usr/hdp/2.2.6.0-2800/hive/hive.tar.gz /hdp/apps/2.2.6.0-2800/hive
-hdfs dfs -put /usr/hdp/2.2.6.0-2800/tez/lib/tez.tar.gz /hdp/apps/2.2.6.0-2800/tez
+hdfs dfs -mkdir -p "${HDFS_DIR}/mapreduce"
+hdfs dfs -mkdir "${HDFS_DIR}/hive"
+hdfs dfs -mkdir "${HDFS_DIR}/tez"
+
+hdfs dfs -put "${OS_DIR}/hadoop/mapreduce.tar.gz" "${HDFS_DIR}/mapreduce"
+hdfs dfs -put "${OS_DIR}/hive/hive.tar.gz" "${HDFS_DIR}/hive"
+hdfs dfs -put "${OS_DIR}/tez/lib/tez.tar.gz" "${HDFS_DIR}/tez"
 
 hdfs dfs -chmod -R 777 /hdp
-hdfs dfs -chmod 555 /hdp/apps/2.2.6.0-2800/mapreduce/mapreduce.tar.gz
-hdfs dfs -chmod 555 /hdp/apps/2.2.6.0-2800/hive/hive.tar.gz
-hdfs dfs -chmod 555 /hdp/apps/2.2.6.0-2800/tez/tez.tar.gz
+hdfs dfs -chmod 555 "${HDFS_DIR}/mapreduce/mapreduce.tar.gz"
+hdfs dfs -chmod 555 "${HDFS_DIR}/hive/hive.tar.gz"
+hdfs dfs -chmod 555 "${HDFS_DIR}/tez/tez.tar.gz"
