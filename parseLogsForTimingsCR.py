@@ -486,12 +486,14 @@ for query in query_list:
 			fc.write(str(first_container_startup[1]-first_container_startup[0])+"\t")
 		if first_container_epilogue[0] == -1 or first_container_epilogue[1] == -1:
 			print "Error in first_container_epilogue: "+str(first_container_epilogue)
-			exit(-1)
+			#Keep calm and write random stuff exit(-1)
+			fc.write("PUZZONE\t")#
 		else:
 			fc.write(str(first_container_epilogue[1]-first_container_epilogue[0])+"\t")
 		if first_container_release[0] == -1 or first_container_release[1] == -1:
 			print "Error in first_container_release: "+str(first_container_release)
-			exit(-1)
+			#Keep calm and write random stuff exit(-1)
+			fc.write("PUZZONE++\n")#
 		else:
 			fc.write(str(first_container_release[1]-first_container_release[0])+"\n")
 
