@@ -9,8 +9,7 @@ source config/variables.sh
 CURDIR=$(pwd)
 CURHOST=$(hostname)
 
-for QUERYNAME in ${QUERIES}
-do
+for QUERYNAME in ${QUERIES}; do
   # INIT
   EXTERNALCOUNTER=1
   EXCEED=0
@@ -20,57 +19,43 @@ do
   # Renewed here and at every external loop, the incremental list is in the queries output folder
   rm -f scratch/apps.tmp
 
-  #echo "Sleeping..."
-  #sleep 1s
-
   ######################################################################
   # Start dstat on all hosts after closing possible other instances and cleaning old stats #
   ######################################################################
   echo "Stop old dstat processes, clean old stats and start sampling system stats on all hosts"
-  #ansible cumpa -a "pkill -f '.+/usr/bin/dstat.+'"
-  #ansible cumpa -a "rm -f /tmp/*.csv"
 
-  while read line
-                do
-      host=$line
-      if [ "$CURHOST" == "$host" ];
-      then
-                                 continue
-      fi
-                        echo "Stopping dstat on $host"
-                        < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
-                done < config/hosts.txt
-        # Plus localhost
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Stopping dstat on $host"
+    < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
+  done < config/hosts.txt
+  # Plus localhost
   echo "Stopping dstat on $CURHOST"
-        pkill -f '.+/usr/bin/dstat.+'
+  pkill -f '.+/usr/bin/dstat.+'
 
-  while read line
-                do
-                        host=$line
-      if [ "$CURHOST" == "$host" ];
-                        then
-                                continue
-                        fi
-                        echo "Cleaning old dstat log on $host"
-                        < /dev/null ssh -n -f ${CURUSER}@$host "rm -f /tmp/*.csv"
-                done < config/hosts.txt
-        # Plus localhost
-        rm -f /tmp/*.csv
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Cleaning old dstat log on $host"
+    < /dev/null ssh -n -f ${CURUSER}@$host "rm -f /tmp/*.csv"
+  done < config/hosts.txt
+  # Plus localhost
+  rm -f /tmp/*.csv
 
 
-  #ansible cumpa -a "sh /tmp/startdstat.sh"
-  #ansible cumpa -a "export THISHOST=$(hostname);dstat -tcmnd --output /tmp/stats.$THISHOST.csv 5 3000 > /dev/null &"
-  # Since ansible is not working with dstat, let's use ssh iteratively
-  while read line
-    do
-      host=$line
-      if [ "$CURHOST" == "$host" ];
-                        then
-                                continue
-                        fi
-      echo "Starting dstat on $host"
-      < /dev/null ssh -n -f ${CURUSER}@$host "nohup dstat -tcmnd --output /tmp/stats.$host.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
-    done < config/hosts.txt
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Starting dstat on $host"
+    < /dev/null ssh -n -f ${CURUSER}@$host "nohup dstat -tcmnd --output /tmp/stats.$host.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
+  done < config/hosts.txt
   #Plus localhost
   echo "Starting dstat on $CURHOST"
   dstat -tcmnd --output /tmp/stats.${CURHOST}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &
@@ -128,10 +113,8 @@ do
         ##########################################
         # Save app name in permanent and temporary file #
         ##########################################
-        while read -r line
-        do
-          if [[ $line =~ .*(application_[0-9]+_[0-9]+).* ]];
-          then
+        while read -r line; do
+          if [[ $line =~ .*(application_[0-9]+_[0-9]+).* ]]; then
             strresult=${BASH_REMATCH[1]}
             echo "Finished app: $strresult"
             echo "$strresult" >> fetched/$QUERYNAME/apps_$QUERYNAME.txt
@@ -163,11 +146,10 @@ do
       echo "Going to fetch RM logs for $appname"
       CATTEMPT=1
       if [ ! -f /tmp/log.txt ]; then
-        if [ "$CURHOST" == "$MASTER" ];
-                          then
-                                  echo "Fetching RM log from local (we are on master)"
+        if [ "$CURHOST" == "$MASTER" ]; then
+          echo "Fetching RM log from local (we are on master)"
           tail ${LOG_PATH} -c 20MB > /tmp/log.txt
-                           else
+        else
           echo "Fetching RM log from master"
           < /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
           < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
@@ -179,15 +161,14 @@ do
       PRESULT=$?
       while [ $PRESULT -eq 255 ] && [ $CATTEMPT -le 15 ]; do
         sleep 10s
-        if [ "$CURHOST" == "$MASTER" ];
-                          then
-                                  echo "Fetching RM log from local (we are on master)"
-                                  tail ${LOG_PATH} -c 20MB > /tmp/log.txt
-                           else
+        if [ "$CURHOST" == "$MASTER" ]; then
+          echo "Fetching RM log from local (we are on master)"
+          tail ${LOG_PATH} -c 20MB > /tmp/log.txt
+        else
           echo "Fetching RM log from master"
-                                  < /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
-                                  < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
-                          fi
+          < /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
+          < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
+        fi
         echo "Trying to fetch log again because end of RM log was not found... Attempt $CATTEMPT"
         python logExtract.py $appname fetched/$QUERYNAME/
         PRESULT=$?
@@ -207,16 +188,14 @@ do
   # Get all the stat only once at the end of everything, later we will take care of considering the time splits for each app #
   ###############################################################################################
   echo "Stopping dstat on all hosts"
-  while read line
-    do
-      host=$line
-      if [ "$CURHOST" == "$host" ];
-                        then
-                                continue
-                        fi
-      echo "Stopping dstat on $host"
-      < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
-    done < config/hosts.txt
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Stopping dstat on $host"
+    < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
+  done < config/hosts.txt
   # Plus localhost
   echo "Stopping dstat on $CURHOST"
   pkill -f '.+/usr/bin/dstat.+'
@@ -225,27 +204,21 @@ do
   sleep 10s
 
   echo "Fetch stats now"
-  while read line
-    do
-      host=$line
-      if [ "$CURHOST" == "$host" ];
-                        then
-                                continue
-                        fi
-      echo "Fetching dstat stats from $host"
-      < /dev/null scp ${CURUSER}@$host:/tmp/stats.$host.csv fetched/$QUERYNAME/
-    done < config/hosts.txt
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Fetching dstat stats from $host"
+    < /dev/null scp ${CURUSER}@$host:/tmp/stats.$host.csv fetched/$QUERYNAME/
+  done < config/hosts.txt
   #Plus localhost
   echo "Fetching dstat stats from $CURHOST"
   cp /tmp/stats.${CURHOST}.csv fetched/$QUERYNAME/
-
-  #echo "Done, check dstat files are properly populated"
-  #read -p "Press [Enter] key to create dstat aggregated logs..."
 
   ####################################
   # Merge all dstat logs in a global cluster log #
   ####################################
   python aggregateLog.py /$CURDIR/fetched/$QUERYNAME/
-
 
 done
