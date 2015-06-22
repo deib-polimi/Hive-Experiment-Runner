@@ -2,6 +2,7 @@
 # FETCH AM and RM logs
 
 source config/variables.sh
+CURDIR=$(pwd)
 CURHOST=$(hostname)
 
 echo "Fetch logs now"

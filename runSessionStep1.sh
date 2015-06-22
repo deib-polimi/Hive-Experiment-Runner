@@ -4,7 +4,7 @@
 # These are supposed to be all the queries also present in runSession.py
 
 source config/variables.sh
-
+CURDIR=$(pwd)
 CURHOST=$(hostname)
 
 #################################################
