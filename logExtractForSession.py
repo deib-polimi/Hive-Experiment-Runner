@@ -152,7 +152,7 @@ for app in started_apps:
 		print "ERROR - Probably the log was not flushed, end of log not found for "+app
 		exit(-1)
 
-fout_startEnd.write(pickle.dumps(started_app))
+fout_startEnd.write(pickle.dumps(started_apps))
 
 fout_startEnd.flush()
 fout_startEnd.close()
