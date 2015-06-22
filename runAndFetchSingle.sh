@@ -9,243 +9,216 @@ source config/variables.sh
 CURDIR=$(pwd)
 CURHOST=$(hostname)
 
-for QUERYNAME in ${QUERIES}
-do
-	# INIT
-	EXTERNALCOUNTER=1
-	EXCEED=0
+for QUERYNAME in ${QUERIES}; do
+  # INIT
+  EXTERNALCOUNTER=1
+  EXCEED=0
 
-	rm -r -f fetched/$QUERYNAME
-	mkdir -p fetched/$QUERYNAME
-	# Renewed here and at every external loop, the incremental list is in the queries output folder
-	rm -f scratch/apps.tmp
+  rm -r -f fetched/$QUERYNAME
+  mkdir -p fetched/$QUERYNAME
+  # Renewed here and at every external loop, the incremental list is in the queries output folder
+  rm -f scratch/apps.tmp
 
-	#echo "Sleeping..."
-	#sleep 1s
+  ######################################################################
+  # Start dstat on all hosts after closing possible other instances and cleaning old stats #
+  ######################################################################
+  echo "Stop old dstat processes, clean old stats and start sampling system stats on all hosts"
 
-	######################################################################
-	# Start dstat on all hosts after closing possible other instances and cleaning old stats #
-	######################################################################
-	echo "Stop old dstat processes, clean old stats and start sampling system stats on all hosts"
-	#ansible cumpa -a "pkill -f '.+/usr/bin/dstat.+'"
-	#ansible cumpa -a "rm -f /tmp/*.csv"
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Stopping dstat on $host"
+    < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
+  done < config/hosts.txt
+  # Plus localhost
+  echo "Stopping dstat on $CURHOST"
+  pkill -f '.+/usr/bin/dstat.+'
 
-	while read line
-                do
-			host=$line
-			if [ "$CURHOST" == "$host" ];
-			then
-                               	continue
-			fi
-                        echo "Stopping dstat on $host"
-                        < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
-                done < config/hosts.txt
-        # Plus localhost
-	echo "Stopping dstat on $CURHOST"
-        pkill -f '.+/usr/bin/dstat.+'
-
-	while read line
-                do
-                        host=$line
-			if [ "$CURHOST" == "$host" ];
-                        then
-                                continue
-                        fi
-                        echo "Cleaning old dstat log on $host"
-                        < /dev/null ssh -n -f ${CURUSER}@$host "rm -f /tmp/*.csv"
-                done < config/hosts.txt
-        # Plus localhost
-        rm -f /tmp/*.csv
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Cleaning old dstat log on $host"
+    < /dev/null ssh -n -f ${CURUSER}@$host "rm -f /tmp/*.csv"
+  done < config/hosts.txt
+  # Plus localhost
+  rm -f /tmp/*.csv
 
 
-	#ansible cumpa -a "sh /tmp/startdstat.sh"
-	#ansible cumpa -a "export THISHOST=$(hostname);dstat -tcmnd --output /tmp/stats.$THISHOST.csv 5 3000 > /dev/null &"
-	# Since ansible is not working with dstat, let's use ssh iteratively
-	while read line
-		do
-			host=$line
-			if [ "$CURHOST" == "$host" ];
-                        then
-                                continue
-                        fi
-			echo "Starting dstat on $host"
-			< /dev/null ssh -n -f ${CURUSER}@$host "nohup dstat -tcmnd --output /tmp/stats.$host.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
-		done < config/hosts.txt
-	#Plus localhost
-	echo "Starting dstat on $CURHOST"
-	dstat -tcmnd --output /tmp/stats.${CURHOST}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &
-	echo "Done, wait 5 secs to be sure they are all running."
-	sleep 5s
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Starting dstat on $host"
+    < /dev/null ssh -n -f ${CURUSER}@$host "nohup dstat -tcmnd --output /tmp/stats.$host.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
+  done < config/hosts.txt
+  #Plus localhost
+  echo "Starting dstat on $CURHOST"
+  dstat -tcmnd --output /tmp/stats.${CURHOST}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &
+  echo "Done, wait 5 secs to be sure they are all running."
+  sleep 5s
 
-	while [  $EXTERNALCOUNTER -le $EXTERNALITER ]; do
-		COUNTER=1
-		echo "Running external iteration: $EXTERNALCOUNTER"
+  while [  $EXTERNALCOUNTER -le $EXTERNALITER ]; do
+    COUNTER=1
+    echo "Running external iteration: $EXTERNALCOUNTER"
 
-		###########################################
-		# Get query explain from hive to build dependencies #
-		###########################################
-		if [ ! -f fetched/$QUERYNAME/dependencies.bin ]; then
-			q=$(cat $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION)
-			explain_query="explain ${q}"
-			echo "$explain_query" > scratch/deleteme.tmp
-			echo "Get query explain from hive..."
-			cp $CURDIR/queries/my_init.sql scratch/init.sql
-			sed -i s/DB_NAME/$DB_NAME/g scratch/init.sql
-			foo=$(hive -i scratch/init.sql -f scratch/deleteme.tmp)
-			echo "$foo" > scratch/deleteme.tmp
-			python buildDeps.py scratch/deleteme.tmp fetched/$QUERYNAME/dependencies.bin
-			echo "Dependencies loaded in fetched/$QUERYNAME/dependencies.bin"
-			rm scratch/deleteme.tmp
-		else
-			echo "Dependencies file already there, skipping..."
-		fi
+    ###########################################
+    # Get query explain from hive to build dependencies #
+    ###########################################
+    if [ ! -f fetched/$QUERYNAME/dependencies.bin ]; then
+      q=$(cat $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION)
+      explain_query="explain ${q}"
+      echo "$explain_query" > scratch/deleteme.tmp
+      echo "Get query explain from hive..."
+      cp $CURDIR/queries/my_init.sql scratch/init.sql
+      sed -i s/DB_NAME/$DB_NAME/g scratch/init.sql
+      foo=$(hive -i scratch/init.sql -f scratch/deleteme.tmp)
+      echo "$foo" > scratch/deleteme.tmp
+      python buildDeps.py scratch/deleteme.tmp fetched/$QUERYNAME/dependencies.bin
+      echo "Dependencies loaded in fetched/$QUERYNAME/dependencies.bin"
+      rm scratch/deleteme.tmp
+    else
+      echo "Dependencies file already there, skipping..."
+    fi
 
 
-		#############################################################################################
-		# Run n times our query, save the application id in scratch/apps.tmp and fetched/$QUERYNAME/apps_$QUERYNAME.txt #
-		#############################################################################################
-		while [  $COUNTER -le $INTERNALITER ]; do
-			echo "Running query. Attempt $COUNTER"
-			touch scratch/start.tmp
-			TST=$(date +"%T.%3N")
-			hive -i scratch/init.sql -f $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION &> scratch/temp.tmp
-			TND=$(date +"%T.%3N")
-			touch -d "-120 seconds" scratch/end.tmp
-			# If the execution of the query took more than 2 minute (usually it takes 50 secs),
-			# the cluster could have stalled at some point, ignore this execution
-			# Skip this on production
-			if [ scratch/end.tmp -nt scratch/start.tmp ] && [ $ISPOLICLOUD -eq 1 ]; then
-				echo "skipping current execution because it took too long"
-				EXCEED=$(( $EXCEED + 1 ))
-				# Wait 1 minutes for the cluster to recover
-				echo "Next attempt in 60s"
-				sleep 60s
-				continue
-			else
-				# Look for the application id in the hive output and save it in scratch/apps.tmp
-				strresult="NONE"
+    #############################################################################################
+    # Run n times our query, save the application id in scratch/apps.tmp and fetched/$QUERYNAME/apps_$QUERYNAME.txt #
+    #############################################################################################
+    while [  $COUNTER -le $INTERNALITER ]; do
+      echo "Running query. Attempt $COUNTER"
+      touch scratch/start.tmp
+      TST=$(date +"%T.%3N")
+      hive -i scratch/init.sql -f $CURDIR/queries/$QUERYNAME.$QUERYEXTENSION &> scratch/temp.tmp
+      TND=$(date +"%T.%3N")
+      touch -d "-120 seconds" scratch/end.tmp
+      # If the execution of the query took more than 2 minute (usually it takes 50 secs),
+      # the cluster could have stalled at some point, ignore this execution
+      # Skip this on production
+      if [ scratch/end.tmp -nt scratch/start.tmp ] && [ $ISPOLICLOUD -eq 1 ]; then
+        echo "skipping current execution because it took too long"
+        EXCEED=$(( $EXCEED + 1 ))
+        # Wait 1 minutes for the cluster to recover
+        echo "Next attempt in 60s"
+        sleep 60s
+        continue
+      else
+        # Look for the application id in the hive output and save it in scratch/apps.tmp
+        strresult="NONE"
 
-				##########################################
-				# Save app name in permanent and temporary file #
-				##########################################
-				while read -r line
-				do
-					if [[ $line =~ .*(application_[0-9]+_[0-9]+).* ]];
-					then
-						strresult=${BASH_REMATCH[1]}
-						echo "Finished app: $strresult"
-						echo "$strresult" >> fetched/$QUERYNAME/apps_$QUERYNAME.txt
-						echo "$strresult" >> scratch/apps.tmp
-						echo "${strresult}\n${TST}\t${TND}">> fetched/$QUERYNAME/real_start_end.txt
-						break
-					fi
-				done < scratch/temp.tmp
-			fi
-			COUNTER=$(( $COUNTER + 1 ))
-		done
+        ##########################################
+        # Save app name in permanent and temporary file #
+        ##########################################
+        while read -r line; do
+          if [[ $line =~ .*(application_[0-9]+_[0-9]+).* ]]; then
+            strresult=${BASH_REMATCH[1]}
+            echo "Finished app: $strresult"
+            echo "$strresult" >> fetched/$QUERYNAME/apps_$QUERYNAME.txt
+            echo "$strresult" >> scratch/apps.tmp
+            echo "${strresult}\n${TST}\t${TND}">> fetched/$QUERYNAME/real_start_end.txt
+            break
+          fi
+        done < scratch/temp.tmp
+      fi
+      COUNTER=$(( $COUNTER + 1 ))
+    done
 
-		echo "Totally exceeded $EXCEED times"
+    echo "Totally exceeded $EXCEED times"
 
-		############################################################
-		# Wait some secs for flushing of previous logs, 2 mins should be enough #
-		############################################################
-		echo "Waiting 120s for logs to be flushed."
-		sleep 120s
-		rm -f /tmp/log.txt
-		##########################################################
-		# For each app, fetch the logs and run the python script to get the time #
-		# intervals for our analysis                                                                        #
-		##########################################################
-		while read line || [[ -n $line ]]; do
-			appname=$line
-			echo "Going to fetch AM logs for $appname"
-			yarn logs -applicationId $appname > fetched/$QUERYNAME/${appname}.AMLOG.txt
-			echo "Going to fetch RM logs for $appname"
-			CATTEMPT=1
-			if [ ! -f /tmp/log.txt ]; then
-				if [ "$CURHOST" == "$MASTER" ];
-        	                then
-                	                echo "Fetching RM log from local (we are on master)"
-					tail ${LOG_PATH} -c 20MB > /tmp/log.txt
-               		        else
-					echo "Fetching RM log from master"
-					< /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
-					< /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
-				fi
-			else
-				echo "RM already fetched. Moving on..."
-			fi
-			python logExtract.py $appname fetched/$QUERYNAME/
-			PRESULT=$?
-			while [ $PRESULT -eq 255 ] && [ $CATTEMPT -le 15 ]; do
-				sleep 10s
-				if [ "$CURHOST" == "$MASTER" ];
-                        	then
-                        	        echo "Fetching RM log from local (we are on master)"
-                        	        tail ${LOG_PATH} -c 20MB > /tmp/log.txt
-                       		else
-					echo "Fetching RM log from master"
-	                                < /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
-	                                < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
-        	                fi
-				echo "Trying to fetch log again because end of RM log was not found... Attempt $CATTEMPT"
-				python logExtract.py $appname fetched/$QUERYNAME/
-				PRESULT=$?
-				CATTEMPT=$(( $CATTEMPT + 1 ))
-			done
+    ############################################################
+    # Wait some secs for flushing of previous logs, 2 mins should be enough #
+    ############################################################
+    echo "Waiting 120s for logs to be flushed."
+    sleep 120s
+    rm -f /tmp/log.txt
+    ##########################################################
+    # For each app, fetch the logs and run the python script to get the time #
+    # intervals for our analysis                                                                        #
+    ##########################################################
+    while read line || [[ -n $line ]]; do
+      appname=$line
+      echo "Going to fetch AM logs for $appname"
+      yarn logs -applicationId $appname > fetched/$QUERYNAME/${appname}.AMLOG.txt
+      echo "Going to fetch RM logs for $appname"
+      CATTEMPT=1
+      if [ ! -f /tmp/log.txt ]; then
+        if [ "$CURHOST" == "$MASTER" ]; then
+          echo "Fetching RM log from local (we are on master)"
+          tail ${LOG_PATH} -c 20MB > /tmp/log.txt
+        else
+          echo "Fetching RM log from master"
+          < /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
+          < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
+        fi
+      else
+        echo "RM already fetched. Moving on..."
+      fi
+      python logExtract.py $appname fetched/$QUERYNAME/
+      PRESULT=$?
+      while [ $PRESULT -eq 255 ] && [ $CATTEMPT -le 15 ]; do
+        sleep 10s
+        if [ "$CURHOST" == "$MASTER" ]; then
+          echo "Fetching RM log from local (we are on master)"
+          tail ${LOG_PATH} -c 20MB > /tmp/log.txt
+        else
+          echo "Fetching RM log from master"
+          < /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
+          < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
+        fi
+        echo "Trying to fetch log again because end of RM log was not found... Attempt $CATTEMPT"
+        python logExtract.py $appname fetched/$QUERYNAME/
+        PRESULT=$?
+        CATTEMPT=$(( $CATTEMPT + 1 ))
+      done
 
-		done < scratch/apps.tmp
+    done < scratch/apps.tmp
 
-		rm -f /tmp/log.txt
-		rm scratch/apps.tmp
+    rm -f /tmp/log.txt
+    rm scratch/apps.tmp
 
-		EXTERNALCOUNTER=$(( $EXTERNALCOUNTER + 1 ))
+    EXTERNALCOUNTER=$(( $EXTERNALCOUNTER + 1 ))
 
-	done
+  done
 
-	###############################################################################################
-	# Get all the stat only once at the end of everything, later we will take care of considering the time splits for each app #
-	###############################################################################################
-	echo "Stopping dstat on all hosts"
-	while read line
-		do
-			host=$line
-			if [ "$CURHOST" == "$host" ];
-                        then
-                                continue
-                        fi
-			echo "Stopping dstat on $host"
-			< /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
-		done < config/hosts.txt
-	# Plus localhost
-	echo "Stopping dstat on $CURHOST"
-	pkill -f '.+/usr/bin/dstat.+'
+  ###############################################################################################
+  # Get all the stat only once at the end of everything, later we will take care of considering the time splits for each app #
+  ###############################################################################################
+  echo "Stopping dstat on all hosts"
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Stopping dstat on $host"
+    < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
+  done < config/hosts.txt
+  # Plus localhost
+  echo "Stopping dstat on $CURHOST"
+  pkill -f '.+/usr/bin/dstat.+'
 
-	echo "Done, wait 10 secs to be sure they all stopped."
-	sleep 10s
+  echo "Done, wait 10 secs to be sure they all stopped."
+  sleep 10s
 
-	echo "Fetch stats now"
-	while read line
-		do
-			host=$line
-			if [ "$CURHOST" == "$host" ];
-                        then
-                                continue
-                        fi
-			echo "Fetching dstat stats from $host"
-			< /dev/null scp ${CURUSER}@$host:/tmp/stats.$host.csv fetched/$QUERYNAME/
-		done < config/hosts.txt
-	#Plus localhost
-	echo "Fetching dstat stats from $CURHOST"
-	cp /tmp/stats.${CURHOST}.csv fetched/$QUERYNAME/
+  echo "Fetch stats now"
+  while read line; do
+    host=$line
+    if [ "$CURHOST" == "$host" ]; then
+      continue
+    fi
+    echo "Fetching dstat stats from $host"
+    < /dev/null scp ${CURUSER}@$host:/tmp/stats.$host.csv fetched/$QUERYNAME/
+  done < config/hosts.txt
+  #Plus localhost
+  echo "Fetching dstat stats from $CURHOST"
+  cp /tmp/stats.${CURHOST}.csv fetched/$QUERYNAME/
 
-	#echo "Done, check dstat files are properly populated"
-	#read -p "Press [Enter] key to create dstat aggregated logs..."
-
-	####################################
-	# Merge all dstat logs in a global cluster log #
-	####################################
-	python aggregateLog.py /$CURDIR/fetched/$QUERYNAME/
-
+  ####################################
+  # Merge all dstat logs in a global cluster log #
+  ####################################
+  python aggregateLog.py /$CURDIR/fetched/$QUERYNAME/
 
 done
