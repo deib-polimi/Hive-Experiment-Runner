@@ -20,22 +20,22 @@ mkdir -p fetched/session
 ###########################################
 for QUERY in ${QUERIES}
 do
-	if [ ! -f fetched/session/${QUERY}_dependencies.bin ] && [ ! -f fetched/$QUERY/dependencies.bin ]; then
-		q=$(cat $CURDIR/queries/${QUERY}.$QUERYEXTENSION)
-		explain_query="explain ${q}"
-		echo "$explain_query" > scratch/deleteme.tmp
-		echo "Get query explain from hive..."
+  if [ ! -f fetched/session/${QUERY}_dependencies.bin ] && [ ! -f fetched/$QUERY/dependencies.bin ]; then
+    q=$(cat $CURDIR/queries/${QUERY}.$QUERYEXTENSION)
+    explain_query="explain ${q}"
+    echo "$explain_query" > scratch/deleteme.tmp
+    echo "Get query explain from hive..."
                 cp $CURDIR/queries/my_init.sql scratch/init.sql
                 sed -i s/DB_NAME/$DB_NAME/g scratch/init.sql
-		foo=$(hive -i scratch/init.sql -f scratch/deleteme.tmp)
-		echo "$foo" > scratch/deleteme.tmp
-		python buildDeps.py scratch/deleteme.tmp fetched/session/${QUERY}_dependencies.bin
-		echo "Dependencies loaded in fetched/session/${QUERY}_dependencies.bin"
-		rm scratch/deleteme.tmp
-	else
-		echo "Using dependency file from single query analysis..."
-		cp fetched/$QUERY/dependencies.bin fetched/session/${QUERY}_dependencies.bin
-	fi
+    foo=$(hive -i scratch/init.sql -f scratch/deleteme.tmp)
+    echo "$foo" > scratch/deleteme.tmp
+    python buildDeps.py scratch/deleteme.tmp fetched/session/${QUERY}_dependencies.bin
+    echo "Dependencies loaded in fetched/session/${QUERY}_dependencies.bin"
+    rm scratch/deleteme.tmp
+  else
+    echo "Using dependency file from single query analysis..."
+    cp fetched/$QUERY/dependencies.bin fetched/session/${QUERY}_dependencies.bin
+  fi
 done
 
 ######################################################################
@@ -46,15 +46,15 @@ echo "Stop old dstat processes, clean old stats and start sampling system stats 
 #ansible cumpa -a "rm -f /tmp/*.csv"
 
 while read line
-	do
-		host=$line
-		if [ "$CURHOST" == "$host" ]
-		then
-			continue
-		fi
-		echo "Stopping dstat on $host"
-		< /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
- 	done < config/hosts.txt
+  do
+    host=$line
+    if [ "$CURHOST" == "$host" ]
+    then
+      continue
+    fi
+    echo "Stopping dstat on $host"
+    < /dev/null ssh -n -f ${CURUSER}@$host "pkill -f '.+/usr/bin/dstat.+'"
+   done < config/hosts.txt
 # Plus localhost
 echo "Stopping dstat on $CURHOST"
 pkill -f '.+/usr/bin/dstat.+'
@@ -68,7 +68,7 @@ while read line
                         continue
                 fi
                 echo "Cleaning old dstat log on $host"
-		< /dev/null ssh -n -f ${CURUSER}@$host "rm -f /tmp/*.csv"
+    < /dev/null ssh -n -f ${CURUSER}@$host "rm -f /tmp/*.csv"
         done < config/hosts.txt
 # Plus localhost
 echo "Cleaning old dstat log on $CURHOST"
@@ -99,7 +99,7 @@ while read line
         do
                 arguments=$line
                 echo "Running session: ${arguments}"
-		nohup python runSessionSingle.py $arguments > /dev/null 2> /dev/null < /dev/null &
+    nohup python runSessionSingle.py $arguments > /dev/null 2> /dev/null < /dev/null &
         done < config/ssdata.conf
 
 read -p "Press [Enter] key to stop iterating sessions..."
