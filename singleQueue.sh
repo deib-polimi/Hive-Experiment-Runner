@@ -44,5 +44,5 @@ while [ ! -f "${STOP_FLAG}" ]; do
 
   [ "x${DEBUG}" = "xyes" ] || rm "${sql}" "${tmp}"
 
-  python waitExp.py
+  python "${SCRIPT_DIR}/waitExp.py"
 done
