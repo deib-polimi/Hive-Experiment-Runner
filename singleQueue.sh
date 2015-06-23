@@ -17,10 +17,11 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 STOP_FLAG="${SCRIPT_DIR}/scratch/stopSession"
 
 rm -f "${STOP_FLAG}"
-rm -f "${SCRIPT_DIR}/scratch/${USERNAME}.${QUERYNAME}.${QUEUE}.txt"
 if [ ! -d fetched/session ]; then
   mkdir -p fetched/session
 fi
+
+out=$(mktemp --tmpdir=fetched/session/ -q "${USERNAME}_${QUERYNAME}_${QUEUE}_XXXXX.txt")
 
 while [ ! -f "${STOP_FLAG}" ]; do
   sql=$(mktemp --tmpdir="${SCRIPT_DIR}/scratch/" -q "${USERNAME}_${QUEUE}_${QUERYNAME}.XXXXX.sql")
@@ -36,8 +37,7 @@ while [ ! -f "${STOP_FLAG}" ]; do
   while read -r line; do
     if [[ "$line" =~ .*(application_[0-9]+_[0-9]+).* ]]; then
       strresult=${BASH_REMATCH[1]}
-      echo "${strresult}, ${TST}, ${TND}" >> \
-        "fetched/session/${USERNAME}_${QUERYNAME}_${QUEUE}.txt"
+      echo "${strresult},${TST},${TND}" >> "${out}"
       break
     fi
   done < "${tmp}"
