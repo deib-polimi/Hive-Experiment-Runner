@@ -7,9 +7,9 @@ import time
 import plotHelper as ph
 from datetime import datetime
 try:
-	import cPickle as pickle
+  import cPickle as pickle
 except:
-	import pickle
+  import pickle
 
 verbose=True
 ganglia=False
@@ -24,49 +24,49 @@ log_path="UNSET"
 master="UNSET"
 
 def getTime(some):
-	h = int(some.group(4))*60*60*1000
-	m = int(some.group(5))*60*1000
-	s = int(some.group(6))*1000
-	ms = int(some.group(7))
-	return (h+m+s+ms)
+  h = int(some.group(4))*60*60*1000
+  m = int(some.group(5))*60*1000
+  s = int(some.group(6))*1000
+  ms = int(some.group(7))
+  return (h+m+s+ms)
 
 def dateTime(some):
-	y = int(some.group(1))
-	m = int(some.group(2))
-	d = int(some.group(3))
-	h = int(some.group(4))
-	mm = int(some.group(5))
-	s = int(some.group(6))
-	return datetime(y,m,d,h,mm,s)
+  y = int(some.group(1))
+  m = int(some.group(2))
+  d = int(some.group(3))
+  h = int(some.group(4))
+  mm = int(some.group(5))
+  s = int(some.group(6))
+  return datetime(y,m,d,h,mm,s)
 
 ####################################
 # Set variables from config/ files #
 ####################################
 for line in open("config/python.conf","r").read().splitlines():
-	sline = line.strip().split(" ")
-	if "ganglia_interval" in sline[0]:
-		ganglia_interval = int(sline[1])
-	elif "ganglia_base_prefix" in sline[0]:
-		ganglia_base_prefix = sline[1]
-	elif "ganglia_global_prefix" in sline[0]:
-		ganglia_global_prefix = sline[1]
-	elif "ganglia_base_inter" in sline[0]:
-		ganglia_base_inter = sline[1]
-	elif "ganglia_base_suffix" in sline[0]:
-		ganglia_base_suffix = sline[1]
-	elif "ganglia_metrics" in sline[0]:
-		ganglia_metrics = sline[1:]
-	elif "fetch_ganglia_metrics" in sline[0]:
-		if "true" in sline[1]:
-			ganglia = True
+  sline = line.strip().split(" ")
+  if "ganglia_interval" in sline[0]:
+    ganglia_interval = int(sline[1])
+  elif "ganglia_base_prefix" in sline[0]:
+    ganglia_base_prefix = sline[1]
+  elif "ganglia_global_prefix" in sline[0]:
+    ganglia_global_prefix = sline[1]
+  elif "ganglia_base_inter" in sline[0]:
+    ganglia_base_inter = sline[1]
+  elif "ganglia_base_suffix" in sline[0]:
+    ganglia_base_suffix = sline[1]
+  elif "ganglia_metrics" in sline[0]:
+    ganglia_metrics = sline[1:]
+  elif "fetch_ganglia_metrics" in sline[0]:
+    if "true" in sline[1]:
+      ganglia = True
 
 for line in open("config/variables.sh","r").read().splitlines():
-	if line and line[0] != "#":
-		sline = line.rstrip().split("=")
-		if "LOG_PATH" in sline[0]:
-			log_path = sline[1]
-		elif "MASTER" in sline[0]:
-			master = sline[1].strip("\"")
+  if line and line[0] != "#":
+    sline = line.rstrip().split("=")
+    if "LOG_PATH" in sline[0]:
+      log_path = sline[1]
+    elif "MASTER" in sline[0]:
+      master = sline[1].strip("\"")
 
 app = sys.argv[1]
 path = sys.argv[2]
@@ -89,10 +89,10 @@ se = open(os.path.join(sys.path[0], path+"appDuration.txt"),"a")
 started_apps = {}
 
 if os.path.isfile(os.path.join(sys.path[0], path+"appsStartEnd.bin")):
-	temp = open(os.path.join(sys.path[0], path+"appsStartEnd.bin"),"r")
-	started_apps=pickle.loads(temp.read())
-	print "Appending to bin app start-end list"
-	temp.close()
+  temp = open(os.path.join(sys.path[0], path+"appsStartEnd.bin"),"r")
+  started_apps=pickle.loads(temp.read())
+  print "Appending to bin app start-end list"
+  temp.close()
 
 fout_startEnd = open(os.path.join(sys.path[0], path+"appsStartEnd.bin"),"w")
 
@@ -112,45 +112,45 @@ time_string = r'([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+):([0-9]+),([0-9]+).+
 time_string_ganglia = r'([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+):([0-9]+).+'
 
 for line in out:
-	count+=1
-	if count%50000==0:
-		print str(count/50000)+"x50 K"
-	
-	if not begun:
-		found = re.search( r'.*'+start_str+".*", line)
-		if found:
-			found = re.search(time_string, line)
-			#print line
-			print "begin!"
-			begun=True
-			fout.write(line)
-			dt_start = dateTime(found)
-			started_apps[app] = (dt_start,-1)
-			start = getTime(found)
-	elif not finished:
-		found = re.search( r'.*'+end_str+".*", line)
-		if found:
-			found = re.search(time_string, line)
-			print "end!"
-			finished=True 
-			#print finished
-			dt_end = dateTime(found)
-			started_apps[app] = (started_apps[app][0],dt_end)
-			end = getTime(found)
-			fout.write(line)
-			break
-		fout.write(line)
+  count+=1
+  if count%50000==0:
+    print str(count/50000)+"x50 K"
+  
+  if not begun:
+    found = re.search( r'.*'+start_str+".*", line)
+    if found:
+      found = re.search(time_string, line)
+      #print line
+      print "begin!"
+      begun=True
+      fout.write(line)
+      dt_start = dateTime(found)
+      started_apps[app] = (dt_start,-1)
+      start = getTime(found)
+  elif not finished:
+    found = re.search( r'.*'+end_str+".*", line)
+    if found:
+      found = re.search(time_string, line)
+      print "end!"
+      finished=True 
+      #print finished
+      dt_end = dateTime(found)
+      started_apps[app] = (started_apps[app][0],dt_end)
+      end = getTime(found)
+      fout.write(line)
+      break
+    fout.write(line)
 
 #print "Done "+str(finished)
 fout.flush()
 fout.close()
 
 if not finished:
-	print "ERROR - Probably the log was not flushed, end of log not found for "+app
-	exit(-1)
+  print "ERROR - Probably the log was not flushed, end of log not found for "+app
+  exit(-1)
 else:
-	print "Done extracting RM log for "+app
-	se.write(str(end-start)+"\t"+app+"\n")
+  print "Done extracting RM log for "+app
+  se.write(str(end-start)+"\t"+app+"\n")
 
 fout_startEnd.write(pickle.dumps(started_apps))
 fout_startEnd.flush()
@@ -160,30 +160,28 @@ fout_startEnd.close()
 # Fetching info from Ganglia for every host #
 ####################################
 if ganglia==True:
-	print "Fetching info from Ganglia"
-	for host in hosts:
-		for metric in ganglia_metrics:
-			ganglia_out=open(os.path.join(sys.path[0], path+"/"+app+"-"+metric+"-"+host.strip(".")[0]+".csv"),"w")
-			target_url = ganglia_base_prefix + host + ganglia_base_inter + metric + ganglia_base_suffix
-			print "Fetching " +metric+" @ "+host
-			raw_csv = urllib2.urlopen(target_url).read()
-			ganglia_out.write(ph.getSlice(raw_csv, dt_start, dt_end, 'ganglia'))
-			ganglia_out.flush()
-			ganglia_out.close()
+  print "Fetching info from Ganglia"
+  for host in hosts:
+    for metric in ganglia_metrics:
+      ganglia_out=open(os.path.join(sys.path[0], path+"/"+app+"-"+metric+"-"+host.strip(".")[0]+".csv"),"w")
+      target_url = ganglia_base_prefix + host + ganglia_base_inter + metric + ganglia_base_suffix
+      print "Fetching " +metric+" @ "+host
+      raw_csv = urllib2.urlopen(target_url).read()
+      ganglia_out.write(ph.getSlice(raw_csv, dt_start, dt_end, 'ganglia'))
+      ganglia_out.flush()
+      ganglia_out.close()
 
 ############################################
 # In any case, use ganglia to fetch cluster wide stats #
 ############################################
 print "Fetching cluster-wide info from Ganglia"
 for metric in ganglia_metrics:
-	global_ganglia_out=open(os.path.join(sys.path[0], path+"/"+app+"-"+metric+"-global.csv"),"w")
-	target_url = ganglia_global_prefix + metric + ganglia_base_suffix
-	print "Fetching " +metric
-	print target_url
-	raw_csv = urllib2.urlopen(target_url).read()
-	print "Done, get slice"
-	global_ganglia_out.write(ph.getSlice(raw_csv, dt_start, dt_end, 'ganglia'))
-	global_ganglia_out.flush()
-	global_ganglia_out.close()
-
-
+  global_ganglia_out=open(os.path.join(sys.path[0], path+"/"+app+"-"+metric+"-global.csv"),"w")
+  target_url = ganglia_global_prefix + metric + ganglia_base_suffix
+  print "Fetching " +metric
+  print target_url
+  raw_csv = urllib2.urlopen(target_url).read()
+  print "Done, get slice"
+  global_ganglia_out.write(ph.getSlice(raw_csv, dt_start, dt_end, 'ganglia'))
+  global_ganglia_out.flush()
+  global_ganglia_out.close()
