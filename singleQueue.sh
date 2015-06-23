@@ -14,15 +14,17 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 . "${SCRIPT_DIR}/config/variables.sh"
 
-rm -f "${SCRIPT_DIR}/scratch/stopSession.tmp"
+STOP_FLAG="${SCRIPT_DIR}/scratch/stopSession"
+
+rm -f "${STOP_FLAG}"
 rm -f "${SCRIPT_DIR}/scratch/${USERNAME}.${QUERYNAME}.${QUEUE}.txt"
 if [ ! -d fetched/session ]; then
   mkdir -p fetched/session
 fi
 
-while [ ! -f "${SCRIPT_DIR}/scratch/stopSession.tmp" ]; do
-  sql=$(tempfile -d "${SCRIPT_DIR}/scratch/" -m 0644 -p "${USERNAME}_${QUEUE}_${QUERYNAME}." -s ".sql")
-  tmp=$(tempfile -d "${SCRIPT_DIR}/scratch/" -m 0644 -p "${USERNAME}_${QUEUE}_${QUERYNAME}." -s ".tmp")
+while [ ! -f "${STOP_FLAG}" ]; do
+  sql=$(mktemp --tempdir="${SCRIPT_DIR}/scratch/" -q "${USERNAME}_${QUEUE}_${QUERYNAME}.XXXXX.sql")
+  tmp=$(mktemp --tempdir="${SCRIPT_DIR}/scratch/" -q "${USERNAME}_${QUEUE}_${QUERYNAME}.XXXXX.tmp")
 
   sed -e "s#DB_NAME#${DB_NAME}#g" "${SCRIPT_DIR}/queries/my_init.sql" > "${sql}"
   echo "set tez.queue.name=${QUEUE};" >> "${sql}"
@@ -40,7 +42,7 @@ while [ ! -f "${SCRIPT_DIR}/scratch/stopSession.tmp" ]; do
     fi
   done < "${tmp}"
 
-  [ "x${DEBUG}" != "xyes" ] || rm "${sql}" "${tmp}"
+  [ "x${DEBUG}" = "xyes" ] || rm "${sql}" "${tmp}"
 
   python waitExp.py
 done
