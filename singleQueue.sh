@@ -23,8 +23,8 @@ if [ ! -d fetched/session ]; then
 fi
 
 while [ ! -f "${STOP_FLAG}" ]; do
-  sql=$(mktemp --tempdir="${SCRIPT_DIR}/scratch/" -q "${USERNAME}_${QUEUE}_${QUERYNAME}.XXXXX.sql")
-  tmp=$(mktemp --tempdir="${SCRIPT_DIR}/scratch/" -q "${USERNAME}_${QUEUE}_${QUERYNAME}.XXXXX.tmp")
+  sql=$(mktemp --tmpdir="${SCRIPT_DIR}/scratch/" -q "${USERNAME}_${QUEUE}_${QUERYNAME}.XXXXX.sql")
+  tmp=$(mktemp --tmpdir="${SCRIPT_DIR}/scratch/" -q "${USERNAME}_${QUEUE}_${QUERYNAME}.XXXXX.tmp")
 
   sed -e "s#DB_NAME#${DB_NAME}#g" "${SCRIPT_DIR}/queries/my_init.sql" > "${sql}"
   echo "set tez.queue.name=${QUEUE};" >> "${sql}"
