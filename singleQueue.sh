@@ -21,25 +21,26 @@ if [ ! -d fetched/session ]; then
 fi
 
 while [ ! -f "${SCRIPT_DIR}/scratch/stopSession.tmp" ]; do
-  rm -f "${SCRIPT_DIR}/scratch/temp_${QUERYNAME}.tmp"
-  if [ ! -f "${SCRIPT_DIR}/scratch/${QUEUE}.sql" ]; then
-    sed -e "s#DB_NAME#${DB_NAME}#g" "${SCRIPT_DIR}/queries/my_init.sql" \
-      > "${SCRIPT_DIR}/scratch/${QUEUE}.sql"
-    echo "set tez.queue.name=${QUEUE};" >> "${SCRIPT_DIR}/scratch/${QUEUE}.sql"
-  fi
+  sql=$(tempfile -d "${SCRIPT_DIR}/scratch/" -m 0644 -p "${USERNAME}_${QUEUE}_${QUERYNAME}." -s ".sql")
+  tmp=$(tempfile -d "${SCRIPT_DIR}/scratch/" -m 0644 -p "${USERNAME}_${QUEUE}_${QUERYNAME}." -s ".tmp")
+
+  sed -e "s#DB_NAME#${DB_NAME}#g" "${SCRIPT_DIR}/queries/my_init.sql" > "${sql}"
+  echo "set tez.queue.name=${QUEUE};" >> "${sql}"
 
   TST=$(date "+%T.%3N")
-  sudo -u $USERNAME hive -i "${SCRIPT_DIR}/scratch/${QUEUE}.sql" \
-    -f "${SCRIPT_DIR}/queries/${QUERYNAME}.${QUERYEXTENSION}" \
-    &> "${SCRIPT_DIR}/scratch/temp_${QUERYNAME}.tmp"
+  sudo -u "$USERNAME" hive -i "${sql}" \
+    -f "${SCRIPT_DIR}/queries/${QUERYNAME}.${QUERYEXTENSION}" > "${tmp}" 2>&1
   TND=$(date "+%T.%3N")
   while read -r line; do
     if [[ "$line" =~ .*(application_[0-9]+_[0-9]+).* ]]; then
       strresult=${BASH_REMATCH[1]}
       echo "${strresult}, ${TST}, ${TND}" >> \
-        "fetched/session/${USERNAME}.${QUERYNAME}.${QUEUE}.txt"
+        "fetched/session/${USERNAME}_${QUERYNAME}_${QUEUE}.txt"
       break
     fi
-  done < "${SCRIPT_DIR}/scratch/temp_${QUERYNAME}.tmp"
+  done < "${tmp}"
+
+  [ "x${DEBUG}" != "xyes" ] || rm "${sql}" "${tmp}"
+
   python waitExp.py
 done
