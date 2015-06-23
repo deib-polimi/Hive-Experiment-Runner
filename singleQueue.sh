@@ -15,6 +15,7 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 . "${SCRIPT_DIR}/config/variables.sh"
 
 STOP_FLAG="${SCRIPT_DIR}/scratch/stopSession"
+TIME_FORMAT="+%d %T.%3N"
 
 rm -f "${STOP_FLAG}"
 if [ ! -d fetched/session ]; then
@@ -30,10 +31,10 @@ while [ ! -f "${STOP_FLAG}" ]; do
   sed -e "s#DB_NAME#${DB_NAME}#g" "${SCRIPT_DIR}/queries/my_init.sql" > "${sql}"
   echo "set tez.queue.name=${QUEUE};" >> "${sql}"
 
-  TST=$(date "+%T.%3N")
+  TST=$(date "${TIME_FORMAT}")
   sudo -u "$USERNAME" hive -i "${sql}" \
     -f "${SCRIPT_DIR}/queries/${QUERYNAME}.${QUERYEXTENSION}" > "${tmp}" 2>&1
-  TND=$(date "+%T.%3N")
+  TND=$(date "${TIME_FORMAT}")
   while read -r line; do
     if [[ "$line" =~ .*(application_[0-9]+_[0-9]+).* ]]; then
       strresult=${BASH_REMATCH[1]}
