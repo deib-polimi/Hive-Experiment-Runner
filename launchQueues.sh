@@ -9,5 +9,5 @@ done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 while read line; do
-  ${SCRIPT_DIR}/singleQueue.sh ${line} &
+  "${SCRIPT_DIR}/singleQueue.sh" ${line} &
 done < ${SCRIPT_DIR}/config/ssdata.conf
