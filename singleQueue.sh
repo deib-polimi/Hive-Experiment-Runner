@@ -31,6 +31,7 @@ while [ ! -f "${STOP_FLAG}" ]; do
   sed -e "s#DB_NAME#${DB_NAME}#g" "${SCRIPT_DIR}/queries/my_init.sql" > "${sql}"
   echo "set tez.queue.name=${QUEUE};" >> "${sql}"
 
+  echo "$(date): Launching ${USERNAME} ${QUERYNAME} ${QUEUE}"
   TST=$(date "${TIME_FORMAT}")
   sudo -u "$USERNAME" hive -i "${sql}" \
     -f "${SCRIPT_DIR}/queries/${QUERYNAME}.${QUERYEXTENSION}" > "${tmp}" 2>&1

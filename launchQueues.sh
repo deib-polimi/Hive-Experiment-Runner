@@ -9,6 +9,5 @@ done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 while read line; do
-  echo "$(date +%T): Launching ${line}"
   "${SCRIPT_DIR}/singleQueue.sh" ${line} &
 done < ${SCRIPT_DIR}/config/ssdata.conf
