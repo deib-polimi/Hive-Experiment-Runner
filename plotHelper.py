@@ -9,7 +9,7 @@ DSTAT_SAMPLE_RATE = "UNSET"
 
 tracker = ""
 
-for line in open("config/python.conf","r").read().splitlines():
+for line in open(os.path.join(sys.path[0], "config/python.conf"),"r").read().splitlines():
   sline = line.rstrip().split(" ")
   if "YEAR" in sline[0]:
     YEAR = int(sline[1])
