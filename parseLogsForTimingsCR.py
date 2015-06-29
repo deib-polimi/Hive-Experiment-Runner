@@ -33,7 +33,7 @@ def dateTime(some):
 # Populate list of queries to analyze #
 ##############################
 query_list = []
-for line in open("config/variables.sh","r").read().splitlines():
+for line in open(os.path.join(sys.path[0], "config/variables.sh"),"r").read().splitlines():
   if line and line[0] != "#":
     sline = line.split("=")
     if "QUERIES" in sline[0]:
@@ -45,8 +45,8 @@ for line in open("config/variables.sh","r").read().splitlines():
 # Outer iteration, for every query, clean/make the query results folder #
 #########################################################
 for query in query_list:
-  working_dir = os.path.join(sys.path[0], "fetched/"+query)
-  final_result_dir = os.path.join(sys.path[0], "fetched/"+query+"/results")
+  working_dir = os.path.join("fetched/"+query)
+  final_result_dir = os.path.join("fetched/"+query+"/results")
   if os.path.exists(final_result_dir):
     shutil.rmtree(final_result_dir)
   os.makedirs(final_result_dir)
@@ -70,7 +70,7 @@ for query in query_list:
   #################################################
   # For every app run for the current query, collect all the info #
   #################################################
-  app_list = open(final_result_dir+"/../apps_"+query+".txt","r").read().split("\n")
+  app_list = open(working_dir+"/apps_"+query+".txt","r").read().split("\n")
   app_list.pop()
   for app in app_list:
     # Input files for the specific app
