@@ -89,6 +89,7 @@ if os.path.isfile(path+"appsStartEnd.bin"):
   try:
     started_apps=pickle.loads(temp.read())
   except EOFError:
+    started_apps = {}
     print "WARNING: empty appsStartEnd.bin"
   print "Appending to bin app start-end list"
   temp.close()
