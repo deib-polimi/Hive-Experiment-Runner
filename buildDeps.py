@@ -12,7 +12,7 @@ import os
 query = str(sys.argv[1])
 path = str(sys.argv[2])
 dependencies = {}
-fout=open(os.path.join(sys.path[0], path),"w")
+fout=open(path,"w")
 
 # Obtain dag structure by querying hive, build dependencies among vertexes and prepare other vertex structures
 print("Get DAG structure from HIVE output...")

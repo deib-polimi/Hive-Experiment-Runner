@@ -42,7 +42,7 @@ def dateTime(some):
 ####################################
 # Set variables from config/ files #
 ####################################
-for line in open("config/python.conf","r").read().splitlines():
+for line in open(os.path.join(sys.path[0], "config/python.conf"),"r").read().splitlines():
   sline = line.strip().split(" ")
   if "ganglia_interval" in sline[0]:
     ganglia_interval = int(sline[1])
@@ -60,7 +60,7 @@ for line in open("config/python.conf","r").read().splitlines():
     if "true" in sline[1]:
       ganglia = True
 
-for line in open("config/variables.sh","r").read().splitlines():
+for line in open(os.path.join(sys.path[0], "config/variables.sh"),"r").read().splitlines():
   if line and line[0] != "#":
     sline = line.rstrip().split("=")
     if "LOG_PATH" in sline[0]:
@@ -80,21 +80,17 @@ print str(len(hosts)) + " hosts loaded from config/hosts.txt"
 start_str = "Storing application with id "+app
 print "Fetching application RM log for "+app
 end_str = "capacity.ParentQueue .+ Application removed.+appId: "+app
-fout = open(os.path.join(sys.path[0], path+app+".RMLOG.txt"),"w")
-se = open(os.path.join(sys.path[0], path+"appDuration.txt"),"a")
-#command = 'ssh '+master+' \'tail '+log_path+' -c 20MB\''
-#print command
-#p = subprocess.Popen(['tail', "/tmp/log.txt", "-c 20MB"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#p = subprocess.Popen(['tail', log_path, '-c 20MB'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+fout = open(path+app+".RMLOG.txt","w")
+se = open(path+"appDuration.txt","a")
 started_apps = {}
 
-if os.path.isfile(os.path.join(sys.path[0], path+"appsStartEnd.bin")):
-  temp = open(os.path.join(sys.path[0], path+"appsStartEnd.bin"),"r")
+if os.path.isfile(path+"appsStartEnd.bin"):
+  temp = open(path+"appsStartEnd.bin","r")
   started_apps=pickle.loads(temp.read())
   print "Appending to bin app start-end list"
   temp.close()
 
-fout_startEnd = open(os.path.join(sys.path[0], path+"appsStartEnd.bin"),"w")
+fout_startEnd = open(path+"appsStartEnd.bin","w")
 
 #out=p.stdout.readlines()
 # readlines() maintains the \n
@@ -163,7 +159,7 @@ if ganglia==True:
   print "Fetching info from Ganglia"
   for host in hosts:
     for metric in ganglia_metrics:
-      ganglia_out=open(os.path.join(sys.path[0], path+"/"+app+"-"+metric+"-"+host.strip(".")[0]+".csv"),"w")
+      ganglia_out=open(path+"/"+app+"-"+metric+"-"+host.strip(".")[0]+".csv","w")
       target_url = ganglia_base_prefix + host + ganglia_base_inter + metric + ganglia_base_suffix
       print "Fetching " +metric+" @ "+host
       raw_csv = urllib2.urlopen(target_url).read()
@@ -176,7 +172,7 @@ if ganglia==True:
 ############################################
 print "Fetching cluster-wide info from Ganglia"
 for metric in ganglia_metrics:
-  global_ganglia_out=open(os.path.join(sys.path[0], path+"/"+app+"-"+metric+"-global.csv"),"w")
+  global_ganglia_out=open(path+"/"+app+"-"+metric+"-global.csv","w")
   target_url = ganglia_global_prefix + metric + ganglia_base_suffix
   print "Fetching " +metric
   print target_url
