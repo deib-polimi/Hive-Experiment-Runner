@@ -65,6 +65,7 @@ for query in query_list:
   vpri = open(final_result_dir+"/vertexPriority.txt","a")
   otk = open(final_result_dir+"/taskLaunchOrder.txt","a")
   tdlo = open(final_result_dir+"/taskDurationLO.txt","a")
+  tse = open (final_result_dir + "/taskStartEnd.txt", "a")
 
 
   #################################################
@@ -517,7 +518,9 @@ for query in query_list:
       couple = tk_start_end[tk]
       duration = couple[1]-couple[0]
       tdlo.write(tk+"\t"+str(duration)+"\n")
+      tse.write (tk + "\t" + str (couple[0]) + "\t" + str (couple[1]) + "\n")
     tdlo.write("\n")
+    tse.write ("\n")
     for vx in map_vx_pri.keys():
       vpri.write(vx+"\t"+map_vx_pri[vx]+"\n")
     vpri.write("\n")
@@ -546,9 +549,11 @@ for query in query_list:
   vltk.flush()
   otk.flush()
   tdlo.flush()
+  tse.flush ()
   al.close()
   vo.close()
   vpri.close()
   vltk.close()
   otk.close()
   tdlo.close()
+  tse.close ()
