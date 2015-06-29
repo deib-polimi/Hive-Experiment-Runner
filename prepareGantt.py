@@ -77,7 +77,7 @@ for query in query_list:
         gantt.add_phase (phase.strip ())
       for line in vertex_lists_file:
         if line:
-          (phase, separator, line) = line.partition ("\t")
+          phase, separator, line = line.partition ("\t")
           phase = phase.strip ()
           for task in line.strip (). split ("\t"):
             gantt.add_task (phase, task.strip ())
