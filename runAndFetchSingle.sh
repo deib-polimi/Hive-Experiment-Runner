@@ -35,7 +35,7 @@ for QUERYNAME in ${QUERIES}; do
     fi
     echo "Stopping dstat on ${host_name}"
     < /dev/null ssh -n -f ${CURUSER}@${host_name} "pkill -f '.+/usr/bin/dstat.+'"
-  done < "{SCRIPT_DIR}/config/hosts.txt"
+  done < "${SCRIPT_DIR}/config/hosts.txt"
   # Plus localhost
   echo "Stopping dstat on $CURHOST"
   pkill -f '.+/usr/bin/dstat.+'
@@ -46,7 +46,7 @@ for QUERYNAME in ${QUERIES}; do
     fi
     echo "Cleaning old dstat log on ${host_name}"
     < /dev/null ssh -n -f ${CURUSER}@${host_name} "rm -f /tmp/*.csv"
-  done < "{SCRIPT_DIR}/config/hosts.txt"
+  done < "${SCRIPT_DIR}/config/hosts.txt"
   # Plus localhost
   rm -f /tmp/*.csv
 
@@ -56,7 +56,7 @@ for QUERYNAME in ${QUERIES}; do
     fi
     echo "Starting dstat on ${host_name}"
     < /dev/null ssh -n -f ${CURUSER}@${host_name} "nohup dstat -tcmnd --output /tmp/stats.${host_name}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
-  done < "{SCRIPT_DIR}/config/hosts.txt"
+  done < "${SCRIPT_DIR}/config/hosts.txt"
   #Plus localhost
   echo "Starting dstat on $CURHOST"
   dstat -tcmnd --output /tmp/stats.${CURHOST}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &
