@@ -153,8 +153,8 @@ for query in query_list:
             cnt = found.group(1)
             #print "Stopping "+cnt
             if not end_DAG:
-              print "Sending container stop request before end of dag (expired): "+cnt
-            #  exit(-1)
+              print "ERROR: Sending container stop request before end of dag (expired): "+cnt
+              #exit(-1)
             if cnt in release_am_side.keys():
               print "Container released after release? "+cnt
             found = re.search(time_string_RM,line)
@@ -171,8 +171,8 @@ for query in query_list:
             this_time = getTime(found)
             release_am_side[cnt] = this_time
             if cnt in container_acquisition.keys():
-              print "Double container_acquisition for "+cnt
-              exit(-1)
+              print "ERROR: Double container_acquisition for "+cnt
+              #exit(-1)
             container_acquisition[cnt]=(-1,this_time,-1,"NEW")
             container_type[cnt]="NEW"
             line = amLog.readline()
@@ -213,8 +213,8 @@ for query in query_list:
               found = re.search(time_string_RM, line)
               this_time = getTime(found)
               if current_container in container_acquisition.keys():
-                print "Double container_acquisition for "+current_container
-                exit(-1)
+                print "ERROR: Double container_acquisition for "+current_container
+                #exit(-1)
               else:
                 container_acquisition[current_container]=(-1,-1,this_time,"1ST")
               current_container = ""
@@ -237,8 +237,8 @@ for query in query_list:
             if found:
               first_container_startup_status="EPILOGUE"
               if last_time < 0:
-                print "ERROR - Unexpected last_time value: "+str(last_time)
-                exit(-1)
+                print "ERROR: Unexpected last_time value: "+str(last_time)
+                #exit(-1)
               first_container_epilogue=(last_time,-1)
               line = amLog.readline()
               continue
@@ -270,8 +270,8 @@ for query in query_list:
           found = re.search(r'.+INFO.+main.+task.TezChild: TezChild starting', line)
           if found:
             if "NULL" not in generic_container_startup_status:
-              print "Unexpected status of first_container_startup_status: "+generic_container_startup_status
-              exit(-1)
+              print "ERROR: Unexpected status of first_container_startup_status: "+generic_container_startup_status
+              #exit(-1)
             generic_container_startup_status="BEGIN"
             found = re.search(time_string_RM, line)
             this_time = getTime(found)
@@ -373,8 +373,8 @@ for query in query_list:
             map_vx_pri[vx_name]=str(pri)
             if vx_name in map_vid_vname.keys():
               if vx_id != map_vid_vname[vx_name]:
-                print "Different match vertex id - vertex name accross different run of same query: "+str(vx_id)+","+map_vid_vname[vx_name]+" for "+vx_name
-                exit(-1)
+                print "ERROR: Different match vertex id - vertex name accross different run of same query: "+str(vx_id)+","+map_vid_vname[vx_name]+" for "+vx_name
+                #exit(-1)
             elif not isOldMapping:
               map_vid_vname[vx_name] = vx_id
             line = amLog.readline()
@@ -425,8 +425,8 @@ for query in query_list:
           if found:
             cnt = found.group(1)
             if cnt not in container_acquisition.keys():
-              print "Container with acquisition RM-side but not AM: "+cnt
-              exit(-1)
+              print "ERROR: Container with acquisition RM-side but not AM: "+cnt
+              #exit(-1)
             else:
               found = re.search(time_string_RM, line)
               this_time = getTime(found)
@@ -461,42 +461,40 @@ for query in query_list:
           ctype = quadruple[3]
           if "GEN" in ctype:
             if allocation == -1 or acquisition == -1 or start == -1:
-              print "GEN container with some unset values: "+cnt+"-"+str(allocation)+"-"+str(acquisition)+"-"+str(start)
-              exit(-1)
+              print "ERROR: GEN container with some unset values: "+cnt+"-"+str(allocation)+"-"+str(acquisition)+"-"+str(start)
+              #exit(-1)
             ca.write(str(acquisition-allocation)+"\t"+str(start-acquisition)+"\t"+ctype+"\n")
           elif "NEW" in ctype:
             if start != -1:
-              print "NEW container with start value set: "+cnt
-              exit(-1)
+              print "ERROR: NEW container with start value set: "+cnt
+              #exit(-1)
             ca.write(str(acquisition-allocation)+"\t"+ctype+"\n")
           elif "1ST" in ctype:
             if acquisition != -1:
-              print "1ST container with acquisition value set!"
-              exit(-1)
+              print "ERROR: 1ST container with acquisition value set!"
+              #exit(-1)
             ca.write(str(start-allocation)+"\t"+ctype+"\n")
         for couple in generic_container_startup:
           end = couple[1]
           start = couple[0]
           if end == -1 or start == -1:
-            print "Error with couple: ("+str(start)+","+str(end)+")"
-            exit(-1)
+            print "ERROR: Error with couple: ("+str(start)+","+str(end)+")"
+            #exit(-1)
           gc.write(str(end-start)+"\t"+this_app+"\n")
         # First container: startup \t epilogue \t release \n
         if first_container_startup[0] == -1 or first_container_startup[1] == -1:
-          print "Error in first_container_startup: "+str(first_container_startup)
-          exit(-1)
+          print "ERROR: Error in first_container_startup: "+str(first_container_startup)
+          #exit(-1)
         else:
           fc.write(str(first_container_startup[1]-first_container_startup[0])+"\t")
         if first_container_epilogue[0] == -1 or first_container_epilogue[1] == -1:
-          print "Error in first_container_epilogue: "+str(first_container_epilogue)
-          #Keep calm and write random stuff exit(-1)
-          fc.write("PUZZONE\t")#
+          print "ERROR: Error in first_container_epilogue: "+str(first_container_epilogue)
+          #exit(-1)
         else:
           fc.write(str(first_container_epilogue[1]-first_container_epilogue[0])+"\t")
         if first_container_release[0] == -1 or first_container_release[1] == -1:
-          print "Error in first_container_release: "+str(first_container_release)
-          #Keep calm and write random stuff exit(-1)
-          fc.write("PUZZONE++\n")#
+          print "ERROR: Error in first_container_release: "+str(first_container_release)
+          #exit(-1)
         else:
           fc.write(str(first_container_release[1]-first_container_release[0])+"\n")
 
