@@ -160,7 +160,7 @@ for QUERYNAME in ${QUERIES}; do
       fi
       python "${SCRIPT_DIR}/logExtract.py" $appname fetched/$QUERYNAME/
       PRESULT=$?
-      while [ $PRESULT -eq 255 ] && [ $CATTEMPT -le 15 ]; do
+      while [ $PRESULT -eq 255 ] && [ $CATTEMPT -le $FETCH_ATTEMPTS ]; do
         sleep 10s
         if [ "x$CURHOST" = "x$MASTER" ]; then
           echo "Fetching RM log from local (we are on master)"
