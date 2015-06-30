@@ -91,10 +91,10 @@ for query in query_list:
               if looking_for == "task":
                 task = word.strip ()
                 looking_for = "start"
-              else if looking_for == "start":
+              elif looking_for == "start":
                 gantt.set_start_time (task, word.strip ())
                 looking_for = "end"
-              else if looking_for == "end":
+              elif looking_for == "end":
                 gantt.set_end_time (task, word.strip ())
                 break
         else:
@@ -107,7 +107,7 @@ for query in query_list:
               if looking_for == "task":
                 task = word.strip ()
                 looking_for = "duration"
-              else if looking_for == "duration":
+              elif looking_for == "duration":
                 gantt.set_duration (task, word.strip ())
                 break
         else:
