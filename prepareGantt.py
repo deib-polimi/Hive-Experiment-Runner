@@ -25,6 +25,7 @@ class Gantt:
     self.starts = dict ()
     self.ends = dict ()
     self.durations = dict ()
+    self.nodes = dict ()
   
   def add_phase (self, phase_id):
     if phase_id not in self.phases:
@@ -75,8 +76,17 @@ class Gantt:
       if do_debug:
         print "Failed to add duration to task {}".format (task_id)
   
+  def set_node (self, task_id, node):
+    if task_id in self.tasks:
+      self.nodes[task_id] = node
+      if do_debug:
+        print "Added node to task {}".format (task_id)
+    else:
+      if do_debug:
+        print "Failed to add node to task {}".format (task_id)
+  
   def write_csv (self, file):
-    file.write ("Phase,Task,Start,End,Duration\n")
+    file.write ("Phase,Task,Node,Start,End,Duration\n")
     try:
       for phase in self.phases:
         if do_debug:
@@ -84,10 +94,11 @@ class Gantt:
         for task in self.tasks_per_phase[phase]:
           if do_debug:
             print "Writing data of task {}".format (task)
-          line = "{P},{T},{S},{E},{D}\n".format (P = phase, T = task,
-                                                 S = self.starts[task],
-                                                 E = self.ends[task],
-                                                 D = self.durations[task])
+          line = "{P},{T},{N},{S},{E},{D}\n".format (P = phase, T = task,
+                                                     N = self.nodes[task],
+                                                     S = self.starts[task],
+                                                     E = self.ends[task],
+                                                     D = self.durations[task])
           file.write (line)
     except KeyError:
       raise RuntimeError, "ERROR: incomplete Gantt chart data"
@@ -106,6 +117,7 @@ for query in query_list:
   vertex_lists_file = open (os.path.join (results_dir, "vertexLtask.txt"), "r")
   task_durations_file = open (os.path.join (results_dir, "taskDurationLO.txt"), "r")
   task_start_end_file = open (os.path.join (results_dir, "taskStartEnd.txt"), "r")
+  task_nodes_file = open (os.path.join (results_dir, "taskNode.txt"), "r")
   
   try:
     counter = 0
@@ -159,6 +171,21 @@ for query in query_list:
                 break
         else:
           break
+      for line in task_nodes_file:
+        line = line.strip ()
+        if line:
+          looking_for = "task"
+          for word in line.strip ().split ("\t"):
+            word = word.strip ()
+            if word:
+              if looking_for == "task":
+                task = word
+                looking_for = "node"
+              elif looking_for == "node":
+                gantt.set_node (task, word)
+                break
+        else:
+          break
       filename = "gantt{0:06d}.csv".format (counter)
       counter += 1
       with open (os.path.join (gantts_dir, filename), "w") as gantt_file:
@@ -172,3 +199,4 @@ for query in query_list:
     vertex_lists_file.close ()
     task_durations_file.close ()
     task_start_end_file.close ()
+    task_nodes_file.close ()
