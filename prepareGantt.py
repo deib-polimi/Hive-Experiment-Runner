@@ -1,5 +1,6 @@
 import sys
 import os
+import csv
 
 query_list = []
 for line in open (os.path.join(sys.path[0], "config/variables.sh"), "r").read ().splitlines ():
@@ -86,7 +87,9 @@ class Gantt:
         print "Failed to add node to task {}".format (task_id)
   
   def write_csv (self, file):
-    file.write ("Phase,Task,Node,Start,End,Duration\n")
+    field_names = ["Phase", "Task", "Node", "Start", "End", "Duration"]
+    writer = csv.DictWriter (file, fieldnames=field_names)
+    writer.writeheader ()
     try:
       for phase in self.phases:
         if do_debug:
@@ -94,15 +97,12 @@ class Gantt:
         for task in self.tasks_per_phase[phase]:
           if do_debug:
             print "Writing data of task {}".format (task)
-          line = "{P},{T},{N},{S},{E},{D}\n".format (P = phase, T = task,
-                                                     N = self.nodes[task],
-                                                     S = self.starts[task],
-                                                     E = self.ends[task],
-                                                     D = self.durations[task])
-          file.write (line)
+          row = {"Phase" : phase, "Task" : task, "Node" : self.nodes[task],
+                 "Start" : self.starts[task], "End" : self.ends[task],
+                 "Duration" : self.durations[task]}
+          writer.writerow (row)
     except KeyError:
       raise RuntimeError, "ERROR: incomplete Gantt chart data"
-    file.flush ()
 
 for query in query_list:
   results_dir = os.path.join ("fetched/" + query + "/results")
