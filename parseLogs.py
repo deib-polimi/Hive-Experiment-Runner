@@ -66,6 +66,8 @@ for query in query_list:
   otk = open(final_result_dir+"/taskLaunchOrder.txt","a")
   tdlo = open(final_result_dir+"/taskDurationLO.txt","a")
   tse = open (final_result_dir + "/taskStartEnd.txt", "a")
+  # Map tasks to nodes
+  task_to_nodes = open (os.path.join (final_result_dir, "taskNode.txt"), "a")
 
 
   #################################################################
@@ -131,6 +133,8 @@ for query in query_list:
         TK_STATUS="NULL"
         last_task="NULL"
         end_DAG=False
+        # Map containers to nodes
+        map_cnt_node = {}
 
         while line:
           counter+=1
@@ -178,9 +182,11 @@ for query in query_list:
             line = amLog.readline()
             continue
           # Container received, set element in container_acquisition
-          found = re.search(r".*Assigning container to task, container=Container: \[ContainerId: (container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).*", line)
+          found = re.search(r".*Assigning container to task, container=Container: \[ContainerId: (container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).* containerHost=(\w+)", line)
           if found:
-            cnt = found.group(1)
+            cnt, host = found.group(1, 2)
+            if cnt not in map_cnt_node.keys ():
+              map_cnt_node[cnt] = host
             found = re.search(time_string_RM, line)
             this_time = getTime(found)
             if cnt in container_acquisition.keys():
@@ -505,7 +511,10 @@ for query in query_list:
         vo.write("\n")
         for tk in task_order:
           otk.write(tk+"\t")
+          node = map_cnt_node[map_task_cnt[tk]]
+          task_to_nodes.write ("{Task}\t{Node}\n".format (Task=tk, Node=node))
         otk.write("\n")
+        task_to_nodes.write ("\n")
         for vx in map_vx_ltk.keys():
           vltk.write(vx+"\t")
           ltk=map_vx_ltk[vx]
@@ -546,3 +555,4 @@ for query in query_list:
     otk.close()
     tdlo.close()
     tse.close ()
+    task_to_nodes.close ()
