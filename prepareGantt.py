@@ -105,8 +105,8 @@ class Gantt:
       raise RuntimeError, "ERROR: incomplete Gantt chart data"
 
 for query in query_list:
-  results_dir = os.path.join ("fetched/" + query + "/results")
-  gantts_dir = os.path.join ("fetched/" + query + "/gantts")
+  results_dir = os.path.join ("fetched", query, "results")
+  gantts_dir = os.path.join ("fetched", query, "gantts")
   if not os.path.exists (results_dir):
     print "ERROR: missing results directory for " + query
     continue
