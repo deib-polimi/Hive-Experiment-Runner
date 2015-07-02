@@ -162,12 +162,13 @@ for QUERYNAME in ${QUERIES}; do
       PRESULT=$?
       while [ $PRESULT -eq 255 ] && [ $CATTEMPT -le $FETCH_ATTEMPTS ]; do
         sleep 10s
+        fetch_command="cat ${LOG_PATH}.1 ${LOG_PATH} | tail -c 20MB > /tmp/log.txt"
         if [ "x$CURHOST" = "x$MASTER" ]; then
           echo "Fetching RM log from local (we are on master)"
-          tail ${LOG_PATH} -c 20MB > /tmp/log.txt
+          eval ${fetch_command}
         else
           echo "Fetching RM log from master"
-          < /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
+          < /dev/null ssh $MASTER "${fetch_command}"
           < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
         fi
         echo "Trying to fetch log again because end of RM log was not found... Attempt $CATTEMPT"
