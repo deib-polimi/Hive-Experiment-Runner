@@ -24,14 +24,32 @@ for query in query_list:
     if file_name.endswith (".csv"):
       if do_debug:
         print "Working on {}".format (file_name)
+      tasks = list ()
+      nodes = list ()
+      starts = list ()
+      ends = list ()
+      phases = list ()
       with open (file_name, "rb") as infile:
-        with open (file_name.replace (".csv", ".tsv"), "wb") as outfile:
-          reader = csv.DictReader (infile)
-          field_names = reader.fieldnames
-          writer = csv.writer (outfile, delimiter="\t")
-          if "Task" in field_names and "Node" in field_names and "Start" in field_names and "End" in field_names:
-            for inrow in reader:
-              outrow = [inrow["Node"], inrow["Start"], inrow["End"], inrow["Task"]]
-              writer.writerow (outrow)
-          else:
-            print "ERROR: csv file lacks required data"
+        reader = csv.DictReader (infile)
+        try:
+          for row in reader:
+            phases.append (row["Phase"])
+            tasks.append (row["Task"])
+            nodes.append (row["Node"])
+            starts.append (int (row["Start"]))
+            ends.append (int (row["End"]))
+        except KeyError:
+          print "ERROR: csv file {} lacks required data".format (file_name)
+          continue
+      min_time = min (starts)
+      starts[:] = [t - min_time for t in starts]
+      ends[:] = [t - min_time for t in ends]
+      out_file_name = file_name.replace (".csv", ".from0.csv")
+      with open (out_file_name, "wb") as outfile:
+        writer = csv.DictWriter (outfile,
+                                 fieldnames=["Phase", "Task", "Node",
+                                             "Start", "End"])
+        for phase, task, node, start, end in zip (phases, tasks, nodes, starts, ends):
+          row = {"Phase" : phase, "Task" : task, "Node" : node,
+                 "Start" : start, "End" : end}
+          writer.writerow (row)
