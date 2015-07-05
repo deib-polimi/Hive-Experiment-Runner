@@ -11,14 +11,12 @@ for line in open (os.path.join(sys.path[0], "config/variables.sh"), "r").read ()
       print "Working on the following queries: " + str (query_list)
       break
 
-do_debug = (os.getenv ("DEBUG", "no") == "yes")
-
 class Gantt:
   gantts = 0
   
   def __init__ (self):
     Gantt.gantts += 1
-    if do_debug:
+    if __debug__:
       print "I'm Gantt number {}".format (Gantt.gantts)
     self.phases = list ()
     self.tasks = list ()
@@ -31,10 +29,10 @@ class Gantt:
   def add_phase (self, phase_id):
     if phase_id not in self.phases:
       self.phases.append (phase_id)
-      if do_debug:
+      if __debug__:
         print "Added phase {}".format (phase_id)
     else:
-      if do_debug:
+      if __debug__:
         print "Failed to add phase {}".format (phase_id)
   
   def add_task (self, phase_id, task_id):
@@ -44,46 +42,46 @@ class Gantt:
         self.tasks_per_phase[phase_id] = [task_id]
       else:
         self.tasks_per_phase[phase_id].append (task_id)
-      if do_debug:
+      if __debug__:
         print "Added task {} to phase {}".format (task_id, phase_id)
     else:
-      if do_debug:
+      if __debug__:
         print "Failed to add task {} to phase {}".format (task_id, phase_id)
   
   def set_start_time (self, task_id, start_time):
     if task_id in self.tasks:
       self.starts[task_id] = start_time
-      if do_debug:
+      if __debug__:
         print "Added start time to task {}".format (task_id)
     else:
-      if do_debug:
+      if __debug__:
         print "Failed to add start time to task {}".format (task_id)
   
   def set_end_time (self, task_id, end_time):
     if task_id in self.tasks:
       self.ends[task_id] = end_time
-      if do_debug:
+      if __debug__:
         print "Added end time to task {}".format (task_id)
     else:
-      if do_debug:
+      if __debug__:
         print "Failed to add end time to task {}".format (task_id)
   
   def set_duration (self, task_id, duration):
     if task_id in self.tasks:
       self.durations[task_id] = duration
-      if do_debug:
+      if __debug__:
         print "Added duration to task {}".format (task_id)
     else:
-      if do_debug:
+      if __debug__:
         print "Failed to add duration to task {}".format (task_id)
   
   def set_node (self, task_id, node):
     if task_id in self.tasks:
       self.nodes[task_id] = node
-      if do_debug:
+      if __debug__:
         print "Added node to task {}".format (task_id)
     else:
-      if do_debug:
+      if __debug__:
         print "Failed to add node to task {}".format (task_id)
   
   def write_csv (self, file):
@@ -92,10 +90,10 @@ class Gantt:
     writer.writeheader ()
     try:
       for phase in self.phases:
-        if do_debug:
+        if __debug__:
           print "Working on phase {}".format (phase)
         for task in self.tasks_per_phase[phase]:
-          if do_debug:
+          if __debug__:
             print "Writing data of task {}".format (task)
           row = {"Phase" : phase, "Task" : task, "Node" : self.nodes[task],
                  "Start" : self.starts[task], "End" : self.ends[task],

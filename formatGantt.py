@@ -12,8 +12,6 @@ for line in open (os.path.join(sys.path[0], "config/variables.sh"), "r").read ()
       print "Working on the following queries: " + str (query_list)
       break
 
-do_debug = (os.getenv ("DEBUG", "no") == "yes")
-
 for query in query_list:
   gantts_dir = os.path.join ("fetched", query, "gantts")
   if not os.path.exists (gantts_dir):
@@ -22,7 +20,7 @@ for query in query_list:
   
   for file_name in glob.glob (os.path.join (gantts_dir, "*")):
     if file_name.endswith (".csv"):
-      if do_debug:
+      if __debug__:
         print "Working on {}".format (file_name)
       tasks = list ()
       nodes = list ()
