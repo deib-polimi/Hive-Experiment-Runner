@@ -34,7 +34,7 @@ class RM:
   first_container = re.compile (r'container_[0-9]+_[0-9]+_[0-9]+_000001')
 
   @classmethod
-  def search_all (myclass, string):
+  def is_relevant (myclass, string):
     return myclass.storing.search (string) or myclass.release.search (string) or myclass.acquisition.search (string)
 
 class AM:
@@ -56,3 +56,15 @@ class AM:
   task_to_vertex = re.compile (r'.+impl.TaskAttemptImpl: remoteTaskSpec:DAGName.+VertexName: (.+), VertexParallelism.+TaskAttemptID:(attempt_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+).+')
   log_type = re.compile (r'LogType:syslog_(attempt_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+)')
   start_vertex = re.compile (r'.+Triggering start event for vertex: vertex_[0-9]+_[0-9]+_[0-9]+_([0-9]+) \[(.+[0-9]+)\] with distanceFromRoot: ([0-9]+)')
+
+  @classmethod
+  def is_relevant (myclass, string):
+    return (myclass.expired.search (string) or myclass.end_of_dag.search (string) or
+            myclass.stop_container.search (string) or myclass.release_empty.search (string) or
+            myclass.received_container.search (string) or myclass.container_on.search (string) or
+            myclass.dag_master.search (string) or myclass.starting_tasks.search (string) or
+            myclass.end_of_dag.search (string) or myclass.end_of_epilogue.search (string) or
+            myclass.generic_container.search (string) or myclass.starting_container.search (string) or
+            myclass.end_of_generic_startup.search (string) or myclass.vertex_launch.search (string) or
+            myclass.task_to_container.search (string) or myclass.task_to_vertex.search (string) or
+            myclass.log_type.search (string) or myclass.start_vertex.search (string))

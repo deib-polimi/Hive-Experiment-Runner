@@ -117,7 +117,8 @@ for line in out:
       end = myre.Time.getTime (found)
       fout.write(line)
       break
-    fout.write(line)
+    if myre.RM.is_relevant (line):
+      fout.write(line)
 
 #print "Done "+str(finished)
 fout.flush()

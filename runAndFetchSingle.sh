@@ -143,7 +143,8 @@ for QUERYNAME in ${QUERIES}; do
     ##########################################################
     while read appname; do
       echo "Going to fetch AM logs for $appname"
-      yarn logs -applicationId $appname > fetched/$QUERYNAME/${appname}.AMLOG.txt
+      yarn logs -applicationId $appname | python "${SCRIPT_DIR}/filterAMlogs.py" \
+        > fetched/$QUERYNAME/${appname}.AMLOG.txt
       echo "Going to fetch RM logs for $appname"
       CATTEMPT=1
       if [ ! -f /tmp/log.txt ]; then
