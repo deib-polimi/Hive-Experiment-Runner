@@ -3,31 +3,13 @@
 # files (common to the apps of a same query) info for the subsequent dag creation 
 import sys
 import os
-import re
+import regularExpressions as myre
 import shutil
 from datetime import datetime
 try:
   import cPickle as pickle
 except:
   import pickle
-
-time_string_RM = r'([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+):([0-9]+),([0-9]+).+'
-
-def getTime(some):
-  h = int(some.group(4))*60*60*1000
-  m = int(some.group(5))*60*1000
-  s = int(some.group(6))*1000
-  ms = int(some.group(7))
-  return (h+m+s+ms)
-
-def dateTime(some):
-  y = int(some.group(1))
-  m = int(some.group(2))
-  d = int(some.group(3))
-  h = int(some.group(4))
-  mm = int(some.group(5))
-  s = int(some.group(6))
-  return datetime.datetime(y,m,d,h,mm,s)
 
 #######################################
 # Populate list of queries to analyze #
@@ -142,17 +124,17 @@ for query in query_list:
             print str(counter/1000)+"K"
 
           # Case: non-blocking check over container type, case expired
-          found = re.search(r".*No taskRequests. Container\'s idle timeout delay expired or is new. Releasing container, .*(container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).*isNew=false", line)
+          found = myre.AM.expired.search (line)
           if found:
             cnt = found.group(1)
             container_type[cnt]="EXP"
           # Case: non-blocking check to be at the end of dag execution
-          found = re.search(r'.*app.DAGAppMaster: Calling stop for all the services', line)
+          found = myre.AM.end_of_dag.search (line)
           if found:
             end_DAG=True
           # Case: release container request, AM side.
           # This is sent also for expired containers, not just deallocating container on dag exit.
-          found = re.search(r'.*Sending a stop request to the NM for ContainerId: (container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).*', line)
+          found = myre.AM.stop_container.search (line)
           if found:
             cnt = found.group(1)
             #print "Stopping "+cnt
@@ -161,18 +143,18 @@ for query in query_list:
               #exit(-1)
             if cnt in release_am_side.keys():
               print "Container released after release? "+cnt
-            found = re.search(time_string_RM,line)
-            release_am_side[cnt] = getTime(found)
+            found = myre.Time.time.search (line)
+            release_am_side[cnt] = myre.Time.getTime(found)
             line = amLog.readline()
             continue
           # Case: release container because new container and no task, AM side
-          found = re.search(r".*No taskRequests. Container\'s idle timeout delay expired or is new. Releasing container, .*(container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).*isNew=true", line)
+          found = myre.AM.release_empty.search (line)
           if found:
             cnt = found.group(1)
             if cnt in release_am_side.keys():
               print "Container released after release? "+cnt
-            found = re.search(time_string_RM, line)
-            this_time = getTime(found)
+            found = myre.Time.time.search (line)
+            this_time = myre.Time.getTime(found)
             release_am_side[cnt] = this_time
             if cnt in container_acquisition.keys():
               print "ERROR: Double container_acquisition for "+cnt
@@ -182,13 +164,13 @@ for query in query_list:
             line = amLog.readline()
             continue
           # Container received, set element in container_acquisition
-          found = re.search(r".*Assigning container to task, container=Container: \[ContainerId: (container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).* containerHost=(\w+)", line)
+          found = myre.AM.received_container.search (line)
           if found:
             cnt, host = found.group(1, 2)
             if cnt not in map_cnt_node.keys ():
               map_cnt_node[cnt] = host
-            found = re.search(time_string_RM, line)
-            this_time = getTime(found)
+            found = myre.Time.time.search (line)
+            this_time = myre.Time.getTime(found)
             if cnt in container_acquisition.keys():
               quadruple = container_acquisition[cnt]
               received = quadruple[1]
@@ -206,7 +188,7 @@ for query in query_list:
           #--------------------------------------------
           # Case: we just found the beginning of the am container log (header)
           if "NULL" in first_container_startup_status:
-            found = re.match(r'Container: (container_[0-9]+_[0-9]+_[0-9]+_000001) on .*', line)
+            found = myre.AM.container_on.match (line)
             if found:
               current_container=found.group(1)
               first_container_startup_status="INIT"
@@ -214,10 +196,10 @@ for query in query_list:
               continue
           # Case: found the beginning of the first container activity (begin of startup)
           if "INIT" in first_container_startup_status:
-            found = re.search(r'.+app.DAGAppMaster: Created DAGAppMaster for application appattempt.*', line)
+            found = myre.AM.dag_master.search (line)
             if found:
-              found = re.search(time_string_RM, line)
-              this_time = getTime(found)
+              found = myre.Time.time.search (line)
+              this_time = myre.Time.getTime (found)
               if current_container in container_acquisition.keys():
                 print "ERROR: Double container_acquisition for "+current_container
                 #exit(-1)
@@ -230,16 +212,16 @@ for query in query_list:
               continue
           # Case: end of container startup, it starts generating new tasks
           if "START" in first_container_startup_status:
-            found = re.search(r'.+impl.ImmediateStartVertexManager: Starting [0-9]+ in .+', line)
+            found = myre.AM.starting_tasks.search (line)
             if found:
               first_container_startup_status="MIDDLE"
-              found = re.search(time_string_RM, line)
-              first_container_startup=(first_container_startup[0],getTime(found))
+              found = myre.Time.time.search (line)
+              first_container_startup=(first_container_startup[0], myre.Time.getTime(found))
               line = amLog.readline()
               continue
           # Case: look for the the end of the dag, epilogue begins
           if "MIDDLE" in first_container_startup_status:
-            found = re.search(r'.+impl.DAGImpl: dag_[0-9]+_[0-9]+_[0-9]+ transitioned from RUNNING to SUCCEEDED', line)
+            found = myre.AM.end_of_dag.search (line)
             if found:
               first_container_startup_status="EPILOGUE"
               if last_time < 0:
@@ -249,17 +231,17 @@ for query in query_list:
               line = amLog.readline()
               continue
             else:
-              found = re.search(time_string_RM, line)
+              found = myre.Time.time.search (line)
               if found:
-                last_time = getTime(found)
+                last_time = myre.Time.getTime (found)
               # no continue here, this line could be in following checks
           # Case: last entry for first container log, end of epilogue, beginning of first container release
           if "EPILOGUE" in first_container_startup_status:
-            found = re.search(r'.+app.DAGAppMaster: The shutdown handler has completed', line)
+            found = myre.AM.end_of_epilogue.search (line)
             if found:
               first_container_startup_status="END"
-              found = re.search(time_string_RM, line)
-              last_time = getTime(found)
+              found = myre.Time.time.search (line)
+              last_time = myre.Time.getTime(found)
               first_container_epilogue=(first_container_epilogue[0],last_time)
               first_container_release=(last_time,-1)
               line = amLog.readline()
@@ -267,20 +249,20 @@ for query in query_list:
           #--------------------------------------------
 
           # Case: generic container
-          found = re.search(r'Container: (container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).+', line)
+          found = myre.AM.generic_container.search (line)
           if found:
             current_container=found.group(1)
             line = amLog.readline()
             continue
           # Case: container just started
-          found = re.search(r'.+INFO.+main.+task.TezChild: TezChild starting', line)
+          found = myre.AM.starting_container.search (line)
           if found:
             if "NULL" not in generic_container_startup_status:
               print "ERROR: Unexpected status of first_container_startup_status: "+generic_container_startup_status
               #exit(-1)
             generic_container_startup_status="BEGIN"
-            found = re.search(time_string_RM, line)
-            this_time = getTime(found)
+            found = myre.Time.time.search (line)
+            this_time = myre.Time.getTime(found)
             generic_container_startup.append((this_time,-1))
             if current_container in container_acquisition.keys():
               container_acquisition[current_container]=(-1,container_acquisition[current_container][1],this_time,"GEN")
@@ -290,24 +272,24 @@ for query in query_list:
             line = amLog.readline()
             continue
           # Case: end of generic container startup
-          found = re.search(r'.+INFO.+TezChild.+task.ContainerReporter: Got TaskUpdate.*', line)
+          found = myre.AM.end_of_generic_startup.search (line)
           if found and "BEGIN" in generic_container_startup_status:
             generic_container_startup_status="NULL"
-            found = re.search(time_string_RM, line)
-            generic_container_startup=generic_container_startup[:-1]+[(generic_container_startup[-1:][0][0],getTime(found))]
+            found = myre.Time.time.search (line)
+            generic_container_startup=generic_container_startup[:-1]+[(generic_container_startup[-1:][0][0],myre.Time.getTime(found))]
             line = amLog.readline()
             continue
 
           ##########DAG SPECIFIC##########
           # Case: get vertex launch order (hive name)
-          found = re.search(r'.+Routing pending task events for vertex: vertex_[0-9]+_[0-9]+_[0-9]+_[0-9]+ \[(.+)\]', line)
+          found = myre.AM.vertex_launch.search (line)
           if found:
             #print "Going to store vertex order for "+found.group(1)
             vertex_order.append(found.group(1))
             line = amLog.readline()
             continue
           # Case: get task attempt mapping to container and implicit launch order
-          found = re.search(r'.+Assigned taskAttempt.+(attempt_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+).+to container:.+(container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).', line)
+          found = myre.AM.task_to_container.search (line)
           if found:
             tk = found.group(1)
             cnt = found.group(2)
@@ -317,7 +299,7 @@ for query in query_list:
             line = amLog.readline()
             continue
           # Case: build list of tasks for each vertex
-          found = re.search(r'.+impl.TaskAttemptImpl: remoteTaskSpec:DAGName.+VertexName: (.+), VertexParallelism.+TaskAttemptID:(attempt_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+).+', line)
+          found = myre.AM.task_to_vertex.search (line)
           if found:
             vx = found.group(1)
             tk = found.group(2)
@@ -330,7 +312,7 @@ for query in query_list:
           # Major case: handle task attempts (get start/end time)
           #-----------------------------------------------------#
           # Case: beginning of a container log
-          found = re.search(r'LogType:syslog_(attempt_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+)', line)
+          found = myre.AM.log_type.search (line)
           if found:
             tk=found.group(1)
             # Only if we found a new task log after a previous container, finalize last container 
@@ -344,10 +326,10 @@ for query in query_list:
             continue
           # Case: we are within a container log, see if it's the first timestamp we got (= container started at this time)
           if "INIT" in TK_STATUS:
-            found = re.search(time_string_RM, line)
+            found = myre.Time.time.search (line)
             if found:
               tk=last_task
-              this_time = getTime(found)
+              this_time = myre.Time.getTime(found)
               tk_start_end[tk]=(this_time,-1)
               TK_STATUS="START"
               last_time=this_time
@@ -362,14 +344,14 @@ for query in query_list:
               line = amLog.readline()
               continue
             else:
-              found = re.search(time_string_RM, line)
+              found = myre.Time.time.search (line)
               if found:
-                last_time=getTime(found)
+                last_time=myre.Time.getTime(found)
                 line = amLog.readline()
                 continue
           #-----------------------------------------------------#
           # Case: get task priority and vertex name/id mapping
-          found = re.search(r'.+Triggering start event for vertex: vertex_[0-9]+_[0-9]+_[0-9]+_([0-9]+) \[(.+[0-9]+)\] with distanceFromRoot: ([0-9]+)', line)
+          found = myre.AM.start_vertex.search (line)
           if found:
             vx_id = int(found.group(1))
             vx_name = found.group(2)
@@ -402,7 +384,7 @@ for query in query_list:
             print str(counter/1000)+"K"
           # Case: get app name
           if not ast_found:
-            found = re.search(r'.+Storing application with id (application_[0-9]+_[0-9]+).*', line)
+            found = myre.RM.storing.search (line)
             if found:
               this_app = found.group(1)
               al.write(this_app+"\t")
@@ -410,32 +392,32 @@ for query in query_list:
               line = rmLog.readline()
               continue
           # Case: release container (any kind), RM side
-          found = re.search(r'.+INFO  scheduler.SchedulerNode.+SchedulerNode.java:releaseContainer.*Released container (container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).*', line)
+          found = myre.RM.release.search (line)
           if found:
             cnt = found.group(1)
-            found = re.search(time_string_RM, line)
-            this_time = getTime(found)
+            found = myre.Time.time.search (line)
+            this_time = myre.Time.getTime (found)
             if cnt in release_rm_side.keys():
               print "Container released after release? "+cnt
             if cnt in release_am_side.keys():
               release_rm_side[cnt] = this_time
             else:
-              isCnt1=re.search(r'container_[0-9]+_[0-9]+_[0-9]+_000001', cnt)
+              isCnt1 = myre.RM.first_container.search (cnt)
               if isCnt1:
                 first_container_release=(first_container_release[0],this_time)
               else:
                 print "Misterious container (not released by AM): "+cnt
             line = rmLog.readline()
             continue
-          found = re.search(r'.+(container_[0-9]+_[0-9]+_[0-9]+_[0-9]+) Container Transitioned from ALLOCATED to ACQUIRED', line)
+          found = myre.RM.acquisition.search (line)
           if found:
             cnt = found.group(1)
             if cnt not in container_acquisition.keys():
               print "ERROR: Container with acquisition RM-side but not AM: "+cnt
               #exit(-1)
             else:
-              found = re.search(time_string_RM, line)
-              this_time = getTime(found)
+              found = myre.Time.time.search (line)
+              this_time = myre.Time.getTime (found)
               quadruple = container_acquisition[cnt]
               received = container_acquisition[cnt][1]
               start = container_acquisition[cnt][2]

@@ -1,11 +1,10 @@
 import subprocess
 import sys
-import re
 import os
 import urllib2
 import time
 import plotHelper as ph
-from datetime import datetime
+import regularExpressions as myre
 try:
   import cPickle as pickle
 except:
@@ -22,22 +21,6 @@ ganglia_base_suffix = "UNSET"
 ganglia_interval = "UNSET"
 log_path="UNSET"
 master="UNSET"
-
-def getTime(some):
-  h = int(some.group(4))*60*60*1000
-  m = int(some.group(5))*60*1000
-  s = int(some.group(6))*1000
-  ms = int(some.group(7))
-  return (h+m+s+ms)
-
-def dateTime(some):
-  y = int(some.group(1))
-  m = int(some.group(2))
-  d = int(some.group(3))
-  h = int(some.group(4))
-  mm = int(some.group(5))
-  s = int(some.group(6))
-  return datetime(y,m,d,h,mm,s)
 
 ####################################
 # Set variables from config/ files #
@@ -74,12 +57,10 @@ path = sys.argv[2]
 hosts = open(os.path.join(sys.path[0], "config/hosts.txt"),"r").read().splitlines()
 print str(len(hosts)) + " hosts loaded from config/hosts.txt"
 
-#############################
+##################################
 # Fetch RM log with tail command #
-#############################
-start_str = "Storing application with id "+app
-print "Fetching application RM log for "+app
-end_str = "capacity.ParentQueue .+ Application removed.+appId: "+app
+##################################
+print "Fetching application RM log for {}".format (app)
 fout = open(path+app+".RMLOG.txt","w")
 se = open(path+"appDuration.txt","a")
 started_apps = {}
@@ -96,20 +77,17 @@ if os.path.isfile(path+"appsStartEnd.bin"):
 
 fout_startEnd = open(path+"appsStartEnd.bin","w")
 
-#out=p.stdout.readlines()
-# readlines() maintains the \n
 out=open("/tmp/log.txt","r").readlines()
-#print out
-##################################################
+
+###############################################################
 # Parse RM log looking for slice belonging to the current app #
-##################################################
+###############################################################
 start=-1
 end=-1
 begun=False
 finished=False
 count=0
-time_string = r'([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+):([0-9]+),([0-9]+).+'
-time_string_ganglia = r'([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+):([0-9]+).+'
+app_re = myre.App (app)
 
 for line in out:
   count+=1
@@ -117,26 +95,26 @@ for line in out:
     print str(count/50000)+"x50 K"
   
   if not begun:
-    found = re.search( r'.*'+start_str+".*", line)
+    found = app_re.start.search (line)
     if found:
-      found = re.search(time_string, line)
+      found = myre.Time.time.search (line)
       #print line
       print "begin!"
       begun=True
       fout.write(line)
-      dt_start = dateTime(found)
+      dt_start = myre.Time.dateTime (found)
       started_apps[app] = (dt_start,-1)
-      start = getTime(found)
+      start = myre.Time.getTime (found)
   elif not finished:
-    found = re.search( r'.*'+end_str+".*", line)
+    found = app_re.end.search (line)
     if found:
-      found = re.search(time_string, line)
+      found = myre.Time.time.search (line)
       print "end!"
       finished=True 
       #print finished
-      dt_end = dateTime(found)
+      dt_end = myre.Time.dateTime (found)
       started_apps[app] = (started_apps[app][0],dt_end)
-      end = getTime(found)
+      end = myre.Time.getTime (found)
       fout.write(line)
       break
     fout.write(line)
