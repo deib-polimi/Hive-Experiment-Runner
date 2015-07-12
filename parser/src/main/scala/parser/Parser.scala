@@ -29,38 +29,41 @@ object Parser {
     }
 
     def apply(files : Seq[String]) : (String, String) = {
-	    val (durations, vertices) = files.map(Parser(_)).unzip
+	    val (durations, vertices) = files.map (Parser (_)).unzip
 	    (durations mkString "\n" + "\n", vertices mkString "" + "\n")
     }
 
     def parse (path : String): Unit = {
-	    val sourceDir = new File (path).getAbsoluteFile;
-	    val inputFiles = sourceDir.listFiles().sortBy(_.getName).map(_.getPath)
-		    .filter(_.endsWith(".AMLOG.txt")).toSeq;
-	    val dataDirectory = new File (sourceDir, "data");
-	    dataDirectory.mkdir();
+	    val sourceDir = new File (path).getAbsoluteFile
+      val dataDir = new File (sourceDir, "data")
+      dataDir.mkdir
 
       val appDurationIn = new File (sourceDir, "appDuration.txt")
-	    val appDurationContent = Source.fromFile (appDurationIn).mkString;
-      val dataDir = new File (sourceDir, "data")
-	    val appDurationOut = new File (dataDir, "appDuration.txt");
-	    if (appDurationOut.exists()) appDurationOut.delete();
-	    val copy = new FileWriter(appDurationOut);
-	    copy.write(appDurationContent);
-	    copy.flush();
-	    copy.close();
+	    val appDurationOut = new File (dataDir, "appDuration.txt")
+      copyFile(appDurationIn, appDurationOut)
 
+      val inputFiles = sourceDir.listFiles ().sortBy (_.getName)
+        .map (_.getPath).filter (_.endsWith (".AMLOG.txt")).toSeq
       val (durationContent, verticesContent) = Parser (inputFiles)
 	    writeToFile (durationContent, new File (dataDir, "taskDurationLO.txt"))
       writeToFile (verticesContent, new File (dataDir, "vertexOrder.txt"))
     }
 
-    def writeToFile (content: String, file: File): Unit = {
+    protected def writeToFile (content: String, file: File): Unit = {
       file.delete
       val out = new FileWriter (file)
       out write content
       out.flush
       out.close
+    }
+
+    protected def copyFile (from: File, to: File): Unit = {
+      val content = Source.fromFile (from).mkString
+      to.delete
+      val copy = new FileWriter(to)
+      copy.write(content)
+      copy.flush()
+      copy.close()
     }
 
     def main(args: Array[String]): Unit = {
