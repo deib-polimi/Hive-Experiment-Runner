@@ -31,12 +31,13 @@ object Parser {
 
     def apply(files : Seq[String]) : String = {
 	    val durations = files.map(Parser(_));
-	    durations.mkString("\n\n");
+	    durations.mkString("\n\n") + "\n"
     }
 
     def parseDirectory(path : String): Unit = {
 	    val sourceDir = new File(path);
-	    val inputFiles = sourceDir.listFiles().sortBy(_.getName).map(_.getPath).filter(_.endsWith(".AMLOG.txt")).toSeq;
+	    val inputFiles = sourceDir.listFiles().sortBy(_.getName).map(_.getPath)
+		    .filter(_.endsWith(".AMLOG.txt")).toSeq;
 	    val dataDirectory = new File(path+"/data");
 	    dataDirectory.mkdir();
 
