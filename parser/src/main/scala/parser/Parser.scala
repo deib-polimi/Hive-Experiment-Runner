@@ -35,24 +35,25 @@ object Parser {
     }
 
     def parse (path : String): Unit = {
-	    val sourceDir = new File(path);
+	    val sourceDir = new File (path).getAbsoluteFile;
 	    val inputFiles = sourceDir.listFiles().sortBy(_.getName).map(_.getPath)
 		    .filter(_.endsWith(".AMLOG.txt")).toSeq;
-	    val dataDirectory = new File(path+"/data");
+	    val dataDirectory = new File (sourceDir, "data");
 	    dataDirectory.mkdir();
 
-	    val durationContent = Source.fromFile(path + "appDuration.txt").mkString;
-	    val durationFile = new File(path + "/data/appDuration.txt");
-	    if(durationFile.exists()) durationFile.delete();
-	    val copy = new FileWriter(durationFile);
+      val durationIn = new File (sourceDir, "appDuration.txt")
+	    val durationContent = Source.fromFile (durationIn).mkString;
+      val dataDir = new File (sourceDir, "data")
+	    val durationOut = new File (dataDir, "appDuration.txt");
+	    if (durationOut.exists()) durationOut.delete();
+	    val copy = new FileWriter(durationOut);
 	    copy.write(durationContent);
 	    copy.flush();
 	    copy.close();
 
-	    val destFile = new File(path + "/data/taskDuration.txt");
-	    if(destFile.exists()) destFile.delete();
+	    val destFile = new File (dataDir, "taskDuration.txt");
+	    if (destFile.exists()) destFile.delete();
 	    val out = new FileWriter(destFile);
-
 	    out.write(Parser(inputFiles));
 	    out.flush();
 	    out.close();
