@@ -23,8 +23,8 @@ object Parser {
 	    //maps._2.foreach(x => println(x));
 	    val stop = System.currentTimeMillis();
 	    val i = new File(filename).length;
-	    println("Finished in " + (stop-start)/1000);
-	    val ratio = i.toLong *1000 / (stop-start);
+	    println("Finished in " + ((stop - start).toDouble / 1000) + " s");
+	    val ratio = i.toLong * 1000 / (stop-start);
 	    println(i + ": " + ratio/1000 + "KB/s")
 	    Durations(finalStatus.records);
     }
@@ -34,7 +34,7 @@ object Parser {
 	    durations.mkString("\n\n") + "\n"
     }
 
-    def parseDirectory(path : String): Unit = {
+    def parse (path : String): Unit = {
 	    val sourceDir = new File(path);
 	    val inputFiles = sourceDir.listFiles().sortBy(_.getName).map(_.getPath)
 		    .filter(_.endsWith(".AMLOG.txt")).toSeq;
@@ -59,6 +59,8 @@ object Parser {
     }
 
     def main(args: Array[String]): Unit = {
-	    Parser.parseDirectory("/workspace/RC/5_80_R3/fetched/R3/");
+      var directory = "/workspace/RC/5_80_R3/fetched/R3/"
+      if (args.length >= 1) directory = args(0)
+	    Parser parse directory
     }
 }
