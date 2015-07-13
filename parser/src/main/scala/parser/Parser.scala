@@ -36,8 +36,8 @@ object Parser {
                     Seq (): Seq[Sequence], Seq (): Seq[VertexListOfTasks]))
         {(lists, tuple) => (lists._1 :+ tuple._1, lists._2 :+ tuple._2,
                             lists._3 :+ tuple._3, lists._4 :+ tuple._4)}
-	    (startEnds mkString "\n" + "\n", durations mkString "\n" + "\n",
-       vertices mkString "" + "\n", listsOfTasks mkString "\n" + "\n")
+	    (startEnds mkString "\n\n", durations mkString "\n\n",
+       vertices mkString "\n", listsOfTasks mkString "\n\n")
     }
 
     def parse (path : String): Unit = {
@@ -60,11 +60,16 @@ object Parser {
     }
 
     protected def writeToFile (content: String, file: File): Unit = {
-      file.delete
-      val out = new FileWriter (file)
-      out write content
-      out.flush
-      out.close
+      if (! content.isEmpty) {
+        file.delete
+        val out = new FileWriter (file)
+        out write {
+          if (content.last == '\n') content
+          else content :+ '\n'
+        }
+        out.flush
+        out.close
+      }
     }
 
     protected def copyFile (from: File, to: File): Unit = {
