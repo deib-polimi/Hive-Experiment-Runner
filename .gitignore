@@ -1,3 +1,4 @@
 fetched
 *.pyc
+*.pyo
 *.log
