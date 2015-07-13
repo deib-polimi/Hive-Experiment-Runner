@@ -13,28 +13,29 @@ import java.util.NoSuchElementException
  */
 case class Waiting (tm : Map[String, (Long, Long)], vs : Seq[String],
                     tv : Map[String, Seq[String]], tc : Map[String, String],
-                    to : Seq[String])
-  extends Status (tm, vs, tv, tc, to)
-object Start extends Waiting (Map(), Seq(), Map(), Map(), Seq())
+                    to : Seq[String], cn : Map[String, String])
+  extends Status (tm, vs, tv, tc, to, cn)
+object Start extends Waiting (Map(), Seq(), Map(), Map(), Seq(), Map())
 case class Init (name : String, tm : Map[String, (Long, Long)], vs : Seq[String],
                  tv : Map[String, Seq[String]], tc : Map[String, String],
-                 to : Seq[String])
-  extends Status (tm, vs, tv, tc, to)
+                 to : Seq[String], cn : Map[String, String])
+  extends Status (tm, vs, tv, tc, to, cn)
 case class Started (name : String, startTime : Long, endTime : Long,
 	                  tm : Map[String, (Long, Long)], vs : Seq[String],
                     tv : Map[String, Seq[String]], tc : Map[String, String],
-                    to : Seq[String])
-  extends Status (tm, vs, tv, tc, to)
+                    to : Seq[String], cn : Map[String, String])
+  extends Status (tm, vs, tv, tc, to, cn)
 
 abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
                        tv : Map[String, Seq[String]], tc : Map[String, String],
-                       to : Seq[String]) {
+                       to : Seq[String], cn : Map[String, String]) {
 
   def times: Map[String, (Long, Long)] = tm
   def vertices: Seq[String] = vs
   def taskToVertices: Map[String, Seq[String]] = tv
   def taskToContainers: Map[String, String] = tc
   def taskOrder: Seq[String] = to
+  def containerToNodes: Map[String, String] = cn
 
   protected def parseTime(input : String) =
 	  new SimpleDateFormat ("yyyy-MM-dd hh:mm:ss,SSS", Locale.ENGLISH).parse (input).getTime
@@ -77,37 +78,51 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
       case None => taskOrder
     }
 
+    def nextContainerToNodes: Map[String, String] =
+      StatusRegex.receivedContainer findFirstMatchIn line match {
+      case Some (m) => {
+        val (container, node) = (m group 1, m group 2)
+        containerToNodes + (container -> node)
+      }
+      case None => containerToNodes
+    }
+
     this match {
-      case Waiting (_, _, _, _, _) => {
+      case Waiting (_, _, _, _, _, _) => {
         val name = StatusRegex.init findFirstIn line
         if (name.isDefined) Init (name.get, times, nextVertices, nextTaskToVertices,
-                                  nextTaskToContainers, nextTaskOrder)
+                                  nextTaskToContainers, nextTaskOrder,
+                                  nextContainerToNodes)
         else Waiting (times, nextVertices, nextTaskToVertices,
-                      nextTaskToContainers, nextTaskOrder)
+                      nextTaskToContainers, nextTaskOrder,
+                      nextContainerToNodes)
       }
 
-      case Init (name, _, _, _, _, _) => {
+      case Init (name, _, _, _, _, _, _) => {
         val when = StatusRegex.date findFirstIn line
         if (when.isDefined) {
 	        val time = parseTime (when.get)
 	        Started (name, time, time, times, nextVertices, nextTaskToVertices,
-                   nextTaskToContainers, nextTaskOrder)
+                   nextTaskToContainers, nextTaskOrder,
+                   nextContainerToNodes)
         }
         else Init (name, times, nextVertices, nextTaskToVertices,
-                   nextTaskToContainers, nextTaskOrder)
+                   nextTaskToContainers, nextTaskOrder,
+                   nextContainerToNodes)
       }
 
-      case Started (name, start, end, _, _, _, _, _) => {
+      case Started (name, start, end, _, _, _, _, _, _) => {
         def updateTime = {
 	        val time = StatusRegex.date findFirstIn line
 	        if (time.isDefined) Started (name, start, parseTime (time.get),
 		                                   times, nextVertices, nextTaskToVertices,
-                                       nextTaskToContainers, nextTaskOrder)
+                                       nextTaskToContainers, nextTaskOrder,
+                                       nextContainerToNodes)
 	        else this
         }
         if (line.isEmpty) Waiting (times + (name -> (start, end)), nextVertices,
                                    nextTaskToVertices, nextTaskToContainers,
-                                   nextTaskOrder)
+                                   nextTaskOrder, nextContainerToNodes)
         else updateTime
       }
     }
@@ -120,4 +135,5 @@ object StatusRegex {
   val vertex = """Routing pending task events for vertex: vertex_\d+_\d+_\d+_\d+ \[(.+)\]""".r
   val taskToVertex = """impl.TaskAttemptImpl: remoteTaskSpec:DAGName.+VertexName: (.+), VertexParallelism.+TaskAttemptID:(attempt_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+)""".r
   val taskToContainer = """Assigned taskAttempt.+(attempt_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+).+to container:.+(container_[0-9]+_[0-9]+_[0-9]+_[0-9]+)""".r
+  val receivedContainer = """Assigning container to task, container=Container: \[ContainerId: (container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).* containerHost=(\w+)""".r
 }
