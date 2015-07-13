@@ -11,17 +11,18 @@ import java.util.NoSuchElementException
  * @author Alessandro
  *
  */
-case class Waiting (dm : Map[String, Long], vs : Seq[String]) extends Status (dm, vs)
+case class Waiting (tm : Map[String, (Long, Long)], vs : Seq[String])
+  extends Status (tm, vs)
 object Start extends Waiting (Map (), Seq())
-case class Init (name : String, dm : Map[String, Long], vs : Seq[String])
-  extends Status (dm, vs)
+case class Init (name : String, tm : Map[String, (Long, Long)], vs : Seq[String])
+  extends Status (tm, vs)
 case class Started (name : String, startTime : Long, endTime : Long,
-	                  dm : Map[String, Long], vs : Seq[String])
-  extends Status (dm, vs)
+	                  tm : Map[String, (Long, Long)], vs : Seq[String])
+  extends Status (tm, vs)
 
-abstract class Status (dm : Map[String, Long], vs : Seq[String]) {
+abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String]) {
 
-  def durations: Map[String, Long] = dm
+  def durations: Map[String, (Long, Long)] = tm
   def vertices: Seq[String] = vs
 
   protected def parseTime(input : String) =
@@ -57,7 +58,7 @@ abstract class Status (dm : Map[String, Long], vs : Seq[String]) {
 		                                   durations, nextVertices)
 	        else this
         }
-        if (line.isEmpty) Waiting (durations + (name -> (end - start)), nextVertices)
+        if (line.isEmpty) Waiting (durations + (name -> (start, end)), nextVertices)
         else updateTime
       }
     }
