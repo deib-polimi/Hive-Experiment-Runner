@@ -14,7 +14,7 @@ import java.io.FileWriter
  */
 object Parser {
 
-    def apply (filename : String) : (StartEnd, Durations, Sequence) = {
+    def apply (filename : String) = {
 	    println("Starting " + filename)
 	    val lines = Source.fromFile(filename).getLines();
 
@@ -26,17 +26,18 @@ object Parser {
 	    val ratio = i.toLong * 1000 / (stop-start);
 	    println(i + ": " + ratio/1000 + "KB/s")
 	    (StartEnd (finalStatus.times), Durations (finalStatus.times),
-       Sequence (finalStatus.vertices))
+       Sequence (finalStatus.vertices),
+       VertexListOfTasks (finalStatus.taskToVertices, finalStatus.taskOrder))
     }
 
-    def apply(files : Seq[String]) : (String, String, String) = {
-	    val (startEnds, durations, vertices) = files.map (Parser (_))
+    def apply (files : Seq[String]): (String, String, String, String) = {
+	    val (startEnds, durations, vertices, listsOfTasks) = files.map (Parser (_))
         .foldLeft ((Seq (): Seq[StartEnd], Seq (): Seq[Durations],
-                    Seq (): Seq[Sequence]))
+                    Seq (): Seq[Sequence], Seq (): Seq[VertexListOfTasks]))
         {(lists, tuple) => (lists._1 :+ tuple._1, lists._2 :+ tuple._2,
-                            lists._3 :+ tuple._3)}
+                            lists._3 :+ tuple._3, lists._4 :+ tuple._4)}
 	    (startEnds mkString "\n" + "\n", durations mkString "\n" + "\n",
-       vertices mkString "" + "\n")
+       vertices mkString "" + "\n", listsOfTasks mkString "\n" + "\n")
     }
 
     def parse (path : String): Unit = {
@@ -50,10 +51,12 @@ object Parser {
 
       val inputFiles = sourceDir.listFiles ().sortBy (_.getName)
         .map (_.getPath).filter (_.endsWith (".AMLOG.txt")).toSeq
-      val (startEndContent, durationContent, verticesContent) = Parser (inputFiles)
+      val (startEndContent, durationContent, verticesContent,
+           listOfTasksContent) = Parser (inputFiles)
       writeToFile (startEndContent, new File (dataDir, "taskStartEnd.txt"))
 	    writeToFile (durationContent, new File (dataDir, "taskDurationLO.txt"))
       writeToFile (verticesContent, new File (dataDir, "vertexOrder.txt"))
+      writeToFile (listOfTasksContent, new File (dataDir, "vertexLtask.txt"))
     }
 
     protected def writeToFile (content: String, file: File): Unit = {
