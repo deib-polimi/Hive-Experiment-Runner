@@ -1,14 +1,15 @@
 function draw_gantt (filename)
 
 height_step = 1;
+line_width = 1;
 
 if (! ischar (filename))
   error ("draw_gantt: you should provide a filename as input");
 else
   # Here I assume the structure of my gantt.csv, I don't like it
   # very much, but otherwise it's a mess
-  [phases, ~, start, finish, duration] = ...
-    textread (filename, "%s %s %d %d %d", "delimiter", ",", "headerlines", 1);
+  [phases, ~, nodes, start, finish] = ...
+    textread (filename, "%s %s %s %d %d", "delimiter", ",", "headerlines", 1);
   
   figure;
   phase_names = unique (phases);
@@ -26,19 +27,27 @@ else
   
   # This is to avoid warnings for horizontal lines
   axis ([0 10 0 5]);
-  height = 0;
+  max_height = 0;
+  heights = struct ();
   hold on;
   for (ii = 1:numel (start))
+    node = nodes{ii};
+    if (isfield (heights, node))
+      height = heights.(node);
+    else
+      height = max_height + height_step;
+      max_height = height;
+      heights.(node) = height;
+    endif
+    
     x = [start(ii) finish(ii)];
     y = height * ones (size (x));
-    height = height + height_step;
     
     idx = find (strcmp (phase_names, phases{ii}));
-    width = 1.6;
     if (already_in_legend(idx))
-      plot (x, y, "color", colors(idx, :), "linewidth", width);
+      plot (x, y, "color", colors(idx, :), "linewidth", line_width);
     else
-      plot (x, y, "color", colors(idx, :), "linewidth", width , "DisplayName", phase_names{idx});
+      plot (x, y, "color", colors(idx, :), "linewidth", line_width , "DisplayName", phase_names{idx});
       already_in_legend(idx) = true;
     endif
   endfor
