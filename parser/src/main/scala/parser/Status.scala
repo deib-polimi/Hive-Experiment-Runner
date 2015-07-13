@@ -22,7 +22,7 @@ case class Started (name : String, startTime : Long, endTime : Long,
 
 abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String]) {
 
-  def durations: Map[String, (Long, Long)] = tm
+  def times: Map[String, (Long, Long)] = tm
   def vertices: Seq[String] = vs
 
   protected def parseTime(input : String) =
@@ -38,27 +38,27 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String]) {
     this match {
       case Waiting (_, _) => {
         val name = StatusRegex.init findFirstIn line
-        if (name.isDefined) Init (name.get, durations, nextVertices)
-        else Waiting (durations, nextVertices)
+        if (name.isDefined) Init (name.get, times, nextVertices)
+        else Waiting (times, nextVertices)
       }
 
       case Init (name, _, _) => {
         val when = StatusRegex.date findFirstIn line
         if (when.isDefined) {
 	        val time = parseTime (when.get)
-	        Started (name, time, time, durations, nextVertices)
+	        Started (name, time, time, times, nextVertices)
         }
-        else Init (name, durations, nextVertices)
+        else Init (name, times, nextVertices)
       }
 
       case Started (name, start, end, _, _) => {
         def updateTime = {
 	        val time = StatusRegex.date findFirstIn line
 	        if (time.isDefined) Started (name, start, parseTime (time.get),
-		                                   durations, nextVertices)
+		                                   times, nextVertices)
 	        else this
         }
-        if (line.isEmpty) Waiting (durations + (name -> (start, end)), nextVertices)
+        if (line.isEmpty) Waiting (times + (name -> (start, end)), nextVertices)
         else updateTime
       }
     }

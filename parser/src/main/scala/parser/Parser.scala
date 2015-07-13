@@ -14,7 +14,7 @@ import java.io.FileWriter
  */
 object Parser {
 
-    def apply (filename : String) : (Durations, Sequence) = {
+    def apply (filename : String) : (StartEnd, Durations, Sequence) = {
 	    println("Starting " + filename)
 	    val lines = Source.fromFile(filename).getLines();
 
@@ -25,12 +25,18 @@ object Parser {
 	    println("Finished in " + ((stop - start).toDouble / 1000) + " s");
 	    val ratio = i.toLong * 1000 / (stop-start);
 	    println(i + ": " + ratio/1000 + "KB/s")
-	    (Durations (finalStatus.durations), Sequence (finalStatus.vertices))
+	    (StartEnd (finalStatus.times), Durations (finalStatus.times),
+       Sequence (finalStatus.vertices))
     }
 
-    def apply(files : Seq[String]) : (String, String) = {
-	    val (durations, vertices) = files.map (Parser (_)).unzip
-	    (durations mkString "\n" + "\n", vertices mkString "" + "\n")
+    def apply(files : Seq[String]) : (String, String, String) = {
+	    val (startEnds, durations, vertices) = files.map (Parser (_))
+        .foldLeft ((Seq (): Seq[StartEnd], Seq (): Seq[Durations],
+                    Seq (): Seq[Sequence]))
+        {(lists, tuple) => (lists._1 :+ tuple._1, lists._2 :+ tuple._2,
+                            lists._3 :+ tuple._3)}
+	    (startEnds mkString "\n" + "\n", durations mkString "\n" + "\n",
+       vertices mkString "" + "\n")
     }
 
     def parse (path : String): Unit = {
@@ -44,7 +50,8 @@ object Parser {
 
       val inputFiles = sourceDir.listFiles ().sortBy (_.getName)
         .map (_.getPath).filter (_.endsWith (".AMLOG.txt")).toSeq
-      val (durationContent, verticesContent) = Parser (inputFiles)
+      val (startEndContent, durationContent, verticesContent) = Parser (inputFiles)
+      writeToFile (startEndContent, new File (dataDir, "taskStartEnd.txt"))
 	    writeToFile (durationContent, new File (dataDir, "taskDurationLO.txt"))
       writeToFile (verticesContent, new File (dataDir, "vertexOrder.txt"))
     }
