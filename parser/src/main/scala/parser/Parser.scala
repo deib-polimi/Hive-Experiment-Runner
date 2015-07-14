@@ -15,7 +15,8 @@ import java.io.FileWriter
 object Parser {
 
     def apply (filename : String): (StartEnd, Durations, Sequence,
-                                    VertexListOfTasks, TaskNodes) = {
+                                    VertexListOfTasks, TaskNodes,
+                                    TaskContainers) = {
 	    println("Starting " + filename)
 	    val lines = Source.fromFile(filename).getLines();
 
@@ -30,21 +31,23 @@ object Parser {
        Sequence (finalStatus.vertices),
        VertexListOfTasks (finalStatus.taskToVertices, finalStatus.taskOrder),
        TaskNodes (finalStatus.containerToNodes, finalStatus.taskToContainers,
-                  finalStatus.taskOrder))
+                  finalStatus.taskOrder),
+       TaskContainers (finalStatus.taskToContainers, finalStatus.taskOrder))
     }
 
-    def apply (files : Seq[String]): (String, String, String, String, String) = {
-	    val (startEnds, durations, vertices, listsOfTasks, taskNodes) =
+    def apply (files : Seq[String]): (String, String, String, String, String, String) = {
+	    val (startEnds, durations, vertices, listsOfTasks, taskNodes,
+           taskContainers) =
         files.map (Parser (_))
         .foldLeft ((Seq (): Seq[StartEnd], Seq (): Seq[Durations],
                     Seq (): Seq[Sequence], Seq (): Seq[VertexListOfTasks],
-                    Seq (): Seq[TaskNodes]))
+                    Seq (): Seq[TaskNodes], Seq (): Seq[TaskContainers]))
         {(lists, tuple) => (lists._1 :+ tuple._1, lists._2 :+ tuple._2,
                             lists._3 :+ tuple._3, lists._4 :+ tuple._4,
-                            lists._5 :+ tuple._5)}
+                            lists._5 :+ tuple._5, lists._6 :+ tuple._6)}
 	    (startEnds mkString "\n\n", durations mkString "\n\n",
        vertices mkString "\n", listsOfTasks mkString "\n\n",
-       taskNodes mkString "\n\n")
+       taskNodes mkString "\n\n", taskContainers mkString "\n\n")
     }
 
     def parse (path : String): Unit = {
@@ -59,12 +62,14 @@ object Parser {
       val inputFiles = sourceDir.listFiles ().sortBy (_.getName)
         .map (_.getPath).filter (_.endsWith (".AMLOG.txt")).toSeq
       val (startEndContent, durationContent, verticesContent,
-           listOfTasksContent, taskNodesContent) = Parser (inputFiles)
+           listOfTasksContent, taskNodesContent,
+           taskContainersContent) = Parser (inputFiles)
       writeToFile (startEndContent, new File (dataDir, "taskStartEnd.txt"))
 	    writeToFile (durationContent, new File (dataDir, "taskDurationLO.txt"))
       writeToFile (verticesContent, new File (dataDir, "vertexOrder.txt"))
       writeToFile (listOfTasksContent, new File (dataDir, "vertexLtask.txt"))
       writeToFile (taskNodesContent, new File (dataDir, "taskNode.txt"))
+      writeToFile (taskContainersContent, new File (dataDir, "taskContainer.txt"))
     }
 
     protected def writeToFile (content: String, file: File): Unit = {
