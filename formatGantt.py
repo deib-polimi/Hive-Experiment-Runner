@@ -27,12 +27,14 @@ for query in query_list:
       starts = list ()
       ends = list ()
       phases = list ()
+      containers = list ()
       with open (file_name, "rb") as infile:
         reader = csv.DictReader (infile)
         try:
           for row in reader:
             phases.append (row["Phase"])
             tasks.append (row["Task"])
+            containers.append (row["Container"])
             nodes.append (row["Node"])
             starts.append (int (row["Start"]))
             ends.append (int (row["End"]))
@@ -45,9 +47,10 @@ for query in query_list:
       out_file_name = file_name.replace (".csv", ".from0.csv")
       with open (out_file_name, "wb") as outfile:
         writer = csv.DictWriter (outfile,
-                                 fieldnames=["Phase", "Task", "Node",
-                                             "Start", "End"])
-        for phase, task, node, start, end in zip (phases, tasks, nodes, starts, ends):
+                                 fieldnames=["Phase", "Task", "Container",
+                                             "Node", "Start", "End"])
+        writer.writeheader ()
+        for phase, task, node, start, end, container in zip (phases, tasks, nodes, starts, ends, containers):
           row = {"Phase" : phase, "Task" : task, "Node" : node,
-                 "Start" : start, "End" : end}
+                 "Start" : start, "End" : end, "Container" : container}
           writer.writerow (row)

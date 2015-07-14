@@ -25,6 +25,7 @@ class Gantt:
     self.ends = dict ()
     self.durations = dict ()
     self.nodes = dict ()
+    self.containers = dict ()
   
   def add_phase (self, phase_id):
     if phase_id not in self.phases:
@@ -84,8 +85,17 @@ class Gantt:
       if __debug__:
         print "Failed to add node to task {}".format (task_id)
   
+  def set_container (self, task_id, container):
+    if task_id in self.tasks:
+      self.containers[task_id] = container
+      if __debug__:
+        print "Added container to task {}".format (task_id)
+    else:
+      if __debug__:
+        print "Failed to add container to task {}".format (task_id)
+  
   def write_csv (self, file):
-    field_names = ["Phase", "Task", "Node", "Start", "End", "Duration"]
+    field_names = ["Phase", "Task", "Container", "Node", "Start", "End", "Duration"]
     writer = csv.DictWriter (file, fieldnames=field_names)
     writer.writeheader ()
     try:
@@ -97,7 +107,8 @@ class Gantt:
             print "Writing data of task {}".format (task)
           row = {"Phase" : phase, "Task" : task, "Node" : self.nodes[task],
                  "Start" : self.starts[task], "End" : self.ends[task],
-                 "Duration" : self.durations[task]}
+                 "Duration" : self.durations[task],
+                 "Container" : self.containers[task]}
           writer.writerow (row)
     except KeyError:
       raise RuntimeError, "ERROR: incomplete Gantt chart data"
@@ -116,6 +127,7 @@ for query in query_list:
   task_durations_file = open (os.path.join (results_dir, "taskDurationLO.txt"), "r")
   task_start_end_file = open (os.path.join (results_dir, "taskStartEnd.txt"), "r")
   task_nodes_file = open (os.path.join (results_dir, "taskNode.txt"), "r")
+  task_containers_file = open (os.path.join (results_dir, "taskContainer.txt"), "r")
   
   try:
     counter = 0
@@ -184,6 +196,21 @@ for query in query_list:
                 break
         else:
           break
+      for line in task_containers_file:
+        line = line.strip ()
+        if line:
+          looking_for = "task"
+          for word in line.strip ().split ("\t"):
+            word = word.strip ()
+            if word:
+              if looking_for == "task":
+                task = word
+                looking_for = "container"
+              elif looking_for == "container":
+                gantt.set_container (task, word)
+                break
+        else:
+          break
       filename = "gantt{0:06d}.csv".format (counter)
       counter += 1
       with open (os.path.join (gantts_dir, filename), "w") as gantt_file:
@@ -198,3 +225,4 @@ for query in query_list:
     task_durations_file.close ()
     task_start_end_file.close ()
     task_nodes_file.close ()
+    task_containers_file.close ()
