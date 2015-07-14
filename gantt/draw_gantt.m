@@ -1,15 +1,15 @@
 function draw_gantt (filename)
 
 height_step = 1;
-line_width = 1;
+line_width = 1.5;
 
 if (! ischar (filename))
   error ("draw_gantt: you should provide a filename as input");
 else
   # Here I assume the structure of my gantt.csv, I don't like it
   # very much, but otherwise it's a mess
-  [phases, ~, nodes, start, finish] = ...
-    textread (filename, "%s %s %s %d %d", "delimiter", ",", "headerlines", 1);
+  [phases, ~, containers, ~, start, finish] = ...
+    textread (filename, "%s %s %s %s %d %d", "delimiter", ",", "headerlines", 1);
   
   figure;
   phase_names = unique (phases);
@@ -31,13 +31,13 @@ else
   heights = struct ();
   hold on;
   for (ii = 1:numel (start))
-    node = nodes{ii};
-    if (isfield (heights, node))
-      height = heights.(node);
+    container = containers{ii};
+    if (isfield (heights, container))
+      height = heights.(container);
     else
       height = max_height + height_step;
       max_height = height;
-      heights.(node) = height;
+      heights.(container) = height;
     endif
     
     x = [start(ii) finish(ii)];
