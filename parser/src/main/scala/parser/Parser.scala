@@ -14,8 +14,8 @@ import java.io.FileWriter
  */
 object Parser {
 
-    def apply (filename : String): (StartEnd, Durations, Sequence,
-                                    VertexListOfTasks, TaskNodes,
+    def apply (filename : String): (StartEnd, Durations, StartEnd, Durations,
+                                    Sequence, VertexListOfTasks, TaskNodes,
                                     TaskContainers) = {
 	    println("Starting " + filename)
 	    val lines = Source.fromFile(filename).getLines();
@@ -28,6 +28,7 @@ object Parser {
 	    val ratio = i.toLong * 1000 / (stop-start);
 	    println(i + ": " + ratio/1000 + "KB/s")
 	    (StartEnd (finalStatus.times), Durations (finalStatus.times),
+       StartEnd (finalStatus.shuffleTimes), Durations (finalStatus.shuffleTimes),
        Sequence (finalStatus.vertices),
        VertexListOfTasks (finalStatus.taskToVertices, finalStatus.taskOrder),
        TaskNodes (finalStatus.containerToNodes, finalStatus.taskToContainers,
@@ -35,17 +36,21 @@ object Parser {
        TaskContainers (finalStatus.taskToContainers, finalStatus.taskOrder))
     }
 
-    def apply (files : Seq[String]): (String, String, String, String, String, String) = {
-	    val (startEnds, durations, vertices, listsOfTasks, taskNodes,
-           taskContainers) =
+    def apply (files : Seq[String]): (String, String, String, String, String,
+                                      String, String, String) = {
+	    val (taskStartEnds, taskDurations, shuffleStartEnds, shuffleDurations,
+           vertices, listsOfTasks, taskNodes, taskContainers) =
         files.map (Parser (_))
         .foldLeft ((Seq (): Seq[StartEnd], Seq (): Seq[Durations],
+                    Seq (): Seq[StartEnd], Seq (): Seq[Durations],
                     Seq (): Seq[Sequence], Seq (): Seq[VertexListOfTasks],
                     Seq (): Seq[TaskNodes], Seq (): Seq[TaskContainers]))
         {(lists, tuple) => (lists._1 :+ tuple._1, lists._2 :+ tuple._2,
                             lists._3 :+ tuple._3, lists._4 :+ tuple._4,
-                            lists._5 :+ tuple._5, lists._6 :+ tuple._6)}
-	    (startEnds mkString "\n\n", durations mkString "\n\n",
+                            lists._5 :+ tuple._5, lists._6 :+ tuple._6,
+                            lists._7 :+ tuple._7, lists._8 :+ tuple._8)}
+	    (taskStartEnds mkString "\n\n", taskDurations mkString "\n\n",
+       shuffleStartEnds mkString "\n\n", shuffleDurations mkString "\n\n",
        vertices mkString "\n", listsOfTasks mkString "\n\n",
        taskNodes mkString "\n\n", taskContainers mkString "\n\n")
     }
@@ -61,11 +66,13 @@ object Parser {
 
       val inputFiles = sourceDir.listFiles ().sortBy (_.getName)
         .map (_.getPath).filter (_.endsWith (".AMLOG.txt")).toSeq
-      val (startEndContent, durationContent, verticesContent,
-           listOfTasksContent, taskNodesContent,
-           taskContainersContent) = Parser (inputFiles)
-      writeToFile (startEndContent, new File (dataDir, "taskStartEnd.txt"))
-	    writeToFile (durationContent, new File (dataDir, "taskDurationLO.txt"))
+      val (taskStartEndContent, taskDurationContent, shuffleStartEndContent,
+           shuffleDurationContent, verticesContent, listOfTasksContent,
+           taskNodesContent, taskContainersContent) = Parser (inputFiles)
+      writeToFile (taskStartEndContent, new File (dataDir, "taskStartEnd.txt"))
+	    writeToFile (taskDurationContent, new File (dataDir, "taskDurationLO.txt"))
+      writeToFile (shuffleStartEndContent, new File (dataDir, "shuffleStartEnd.txt"))
+      writeToFile (shuffleDurationContent, new File (dataDir, "shuffleDurationLO.txt"))
       writeToFile (verticesContent, new File (dataDir, "vertexOrder.txt"))
       writeToFile (listOfTasksContent, new File (dataDir, "vertexLtask.txt"))
       writeToFile (taskNodesContent, new File (dataDir, "taskNode.txt"))
