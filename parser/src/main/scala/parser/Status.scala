@@ -118,7 +118,8 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
 		                                   times, nextVertices, nextTaskToVertices,
                                        nextTaskToContainers, nextTaskOrder,
                                        nextContainerToNodes)
-	        else this
+	        else Started (name, start, end, times, nextVertices, nextTaskToVertices,
+                        nextTaskToContainers, nextTaskOrder, nextContainerToNodes)
         }
         if (line.isEmpty) Waiting (times + (name -> (start, end)), nextVertices,
                                    nextTaskToVertices, nextTaskToContainers,
