@@ -53,7 +53,7 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
   def shuffleTimes: Map[String, (Long, Long)] = stm
 
   protected def parseTime(input : String) =
-	  new SimpleDateFormat ("yyyy-MM-dd hh:mm:ss,SSS", Locale.ENGLISH).parse (input).getTime
+	  new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss,SSS", Locale.ENGLISH).parse (input).getTime
 
   def next (line : String) : Status = {
 
