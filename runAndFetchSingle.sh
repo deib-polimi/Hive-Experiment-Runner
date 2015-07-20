@@ -68,17 +68,18 @@ for QUERYNAME in ${QUERIES}; do
     COUNTER=1
     echo "Running external iteration: $EXTERNALCOUNTER"
 
-    ###########################################
+    #####################################################
     # Get query explain from hive to build dependencies #
-    ###########################################
+    #####################################################
+    init_file="${SCRIPT_DIR}/scratch/init.sql"
     if [ ! -f fetched/$QUERYNAME/dependencies.bin ]; then
       q=$(cat "${SCRIPT_DIR}/queries/${QUERYNAME}.${QUERYEXTENSION}")
       explain_query="explain ${q}"
       echo "$explain_query" > "${SCRIPT_DIR}/scratch/deleteme.tmp"
       echo "Get query explain from hive..."
       sed "s/DB_NAME/${DB_NAME}/g" "${SCRIPT_DIR}/queries/my_init.sql" \
-        > "${SCRIPT_DIR}/scratch/init.sql"
-      explain=$(hive -i "${SCRIPT_DIR}/scratch/init.sql" -f "${SCRIPT_DIR}/scratch/deleteme.tmp")
+        > "${init_file}"
+      explain=$(hive -i "${init_file}" -f "${SCRIPT_DIR}/scratch/deleteme.tmp")
       echo "${explain}" > "${SCRIPT_DIR}/scratch/deleteme.tmp"
       python "${SCRIPT_DIR}/buildDeps.py" "${SCRIPT_DIR}/scratch/deleteme.tmp" fetched/$QUERYNAME/dependencies.bin
       echo "Dependencies loaded in fetched/$QUERYNAME/dependencies.bin"
@@ -87,24 +88,25 @@ for QUERYNAME in ${QUERIES}; do
       echo "Dependencies file already there, skipping..."
     fi
 
-    #############################################################################################
+    #################################################################################################################
     # Run n times our query, save the application id in scratch/apps.tmp and fetched/$QUERYNAME/apps_$QUERYNAME.txt #
-    #############################################################################################
+    #################################################################################################################
+    tmp_file="${SCRIPT_DIR}/scratch/temp.tmp"
     while [ $COUNTER -le $INTERNALITER ]; do
       echo "Running query. Attempt $COUNTER"
       start_file="${SCRIPT_DIR}/scratch/start.tmp"
       end_file="${SCRIPT_DIR}/scratch/end.tmp"
       touch "${start_file}"
       TST=$(date +"%T.%3N")
-      hive -i "${SCRIPT_DIR}/scratch/init.sql" \
+      hive -i "${init_file}" \
         -f "${SCRIPT_DIR}/queries/${QUERYNAME}.${QUERYEXTENSION}" \
-        > "${SCRIPT_DIR}/scratch/temp.tmp" 2>&1
+        > "${tmp_file}" 2>&1
       TND=$(date +"%T.%3N")
       touch -d "-120 seconds" "${end_file}"
       # If the execution of the query took more than 2 minute (usually it takes 50 secs),
       # the cluster could have stalled at some point, ignore this execution
       # Skip this on production
-      if [ "${end_file}" -nt "${start_file}" ] && [ $ISPOLICLOUD -eq 1 ]; then
+      if [ $ISPOLICLOUD -eq 1 ] && [ "${end_file}" -nt "${start_file}" ]; then
         echo "skipping current execution because it took too long"
         EXCEED=$(( $EXCEED + 1 ))
         # Wait 1 minutes for the cluster to recover
@@ -112,6 +114,7 @@ for QUERYNAME in ${QUERIES}; do
         sleep 60s
         continue
       else
+        rm -f ${start_file} ${end_file}
         ##########################################
         # Save app name in permanent and temporary file #
         ##########################################
@@ -124,11 +127,13 @@ for QUERYNAME in ${QUERIES}; do
             echo "${strresult}\n${TST}\t${TND}">> fetched/$QUERYNAME/real_start_end.txt
             break
           fi
-        done < "${SCRIPT_DIR}/scratch/temp.tmp"
+        done < "${tmp_file}"
+        rm -f "${tmp_file}"
       fi
       COUNTER=$(( $COUNTER + 1 ))
     done
 
+    rm -f "${init_file}"
     echo "Totally exceeded $EXCEED times"
 
     ############################################################
