@@ -14,3 +14,7 @@ lazy val root = (project in file(".")).
     )
   )
 
+import sbtassembly.AssemblyPlugin.defaultShellScript
+assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript = Some(defaultShellScript))
+
+assemblyJarName in assembly := s"${name.value}-${version.value}"
