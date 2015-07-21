@@ -133,7 +133,6 @@ for QUERYNAME in ${QUERIES}; do
       COUNTER=$(( $COUNTER + 1 ))
     done
 
-    rm -f "${init_file}"
     echo "Totally exceeded $EXCEED times"
 
     ############################################################
@@ -189,6 +188,8 @@ for QUERYNAME in ${QUERIES}; do
 
     EXTERNALCOUNTER=$(( $EXTERNALCOUNTER + 1 ))
   done
+
+  rm -f "${init_file}"
 
   ###############################################################################################
   # Get all the stat only once at the end of everything, later we will take care of considering the time splits for each app #
