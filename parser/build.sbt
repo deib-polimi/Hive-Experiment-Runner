@@ -6,7 +6,7 @@ lazy val commonSettings = Seq(
 lazy val root = (project in file(".")).
   settings(commonSettings: _*).
   settings(
-    name := "MapReduce",
+    name := "LogParser",
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3",
       "junit" % "junit" % "4.11",
