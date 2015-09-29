@@ -14,9 +14,9 @@ import os
 #     if "MASTER" in sline[0]:
 #         master = sline[1].strip("\"")
 #         break
-# 
+#
 # path = sys.argv[1]
-# 
+#
 # hosts = open(os.path.join(sys.path[0], 'config/hosts.txt'),'r').read().splitlines()
 # hosts.remove(master)
 
@@ -24,7 +24,7 @@ import os
 
 path = sys.argv[1]
 
-hosts = open(os.path.join(sys.path[0], 'config/hosts.txt'),'r').read().splitlines()
+hosts = open(os.path.join(sys.path[0], 'config', 'hosts.txt'),'r').read().splitlines()
 
 # <<<<< My way (or the highway)
 

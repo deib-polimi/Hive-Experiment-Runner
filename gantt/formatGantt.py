@@ -4,7 +4,7 @@ import csv
 import glob
 
 query_list = []
-for line in open (os.path.join (sys.path[0], "../config/variables.sh"), "r").read ().splitlines ():
+for line in open (os.path.join (sys.path[0], "..", "config", "variables.sh"), "r").read ().splitlines ():
   if line and line[0] != "#":
     sline = line.split ("=")
     if "QUERIES" in sline[0]:

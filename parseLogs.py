@@ -1,6 +1,6 @@
 # For every query present in the list, for every app run using that query, parse the logs
-# in the appropriate folder, collecting info about main time intervals and writing on several 
-# files (common to the apps of a same query) info for the subsequent dag creation 
+# in the appropriate folder, collecting info about main time intervals and writing on several
+# files (common to the apps of a same query) info for the subsequent dag creation
 import sys
 import os
 import regularExpressions as myre
@@ -15,7 +15,7 @@ except:
 # Populate list of queries to analyze #
 #######################################
 query_list = []
-for line in open(os.path.join(sys.path[0], "config/variables.sh"),"r").read().splitlines():
+for line in open(os.path.join(sys.path[0], "config", "variables.sh"),"r").read().splitlines():
   if line and line[0] != "#":
     sline = line.split("=")
     if "QUERIES" in sline[0]:
@@ -27,8 +27,8 @@ for line in open(os.path.join(sys.path[0], "config/variables.sh"),"r").read().sp
 # Outer iteration, for every query, clean/make the query results folder #
 #########################################################################
 for query in query_list:
-  working_dir = os.path.join("fetched/"+query)
-  final_result_dir = os.path.join("fetched/"+query+"/results")
+  working_dir = os.path.join("fetched", query)
+  final_result_dir = os.path.join("fetched", query, "results")
   if os.path.exists(final_result_dir):
     shutil.rmtree(final_result_dir)
   os.makedirs(final_result_dir)
@@ -36,18 +36,18 @@ for query in query_list:
   #####################
   # Open output files #
   #####################
-  fc = open(final_result_dir+"/firstContainerInfo.txt","a")
-  rc = open(final_result_dir+"/releaseContainer.txt","a")
-  gc = open(final_result_dir+"/genericContainerStartup.txt","a")
-  ca = open(final_result_dir+"/containerAcquisition.txt","a")
+  fc = open (os.path.join (final_result_dir, "firstContainerInfo.txt"), "a")
+  rc = open (os.path.join (final_result_dir, "releaseContainer.txt"), "a")
+  gc = open (os.path.join (final_result_dir, "genericContainerStartup.txt"), "a")
+  ca = open (os.path.join (final_result_dir, "containerAcquisition.txt"), "a")
   #DAG specific output files
-  al = open(final_result_dir+"/appsList.txt","a")
-  vo = open(final_result_dir+"/vertexOrder.txt","a")
-  vltk = open(final_result_dir+"/vertexLtask.txt","a")
-  vpri = open(final_result_dir+"/vertexPriority.txt","a")
-  otk = open(final_result_dir+"/taskLaunchOrder.txt","a")
-  tdlo = open(final_result_dir+"/taskDurationLO.txt","a")
-  tse = open (final_result_dir + "/taskStartEnd.txt", "a")
+  al = open (os.path.join (final_result_dir, "appsList.txt"), "a")
+  vo = open (os.path.join (final_result_dir, "vertexOrder.txt"), "a")
+  vltk = open (os.path.join (final_result_dir, "vertexLtask.txt"), "a")
+  vpri = open (os.path.join (final_result_dir, "vertexPriority.txt"), "a")
+  otk = open (os.path.join (final_result_dir, "taskLaunchOrder.txt"), "a")
+  tdlo = open (os.path.join (final_result_dir, "taskDurationLO.txt"), "a")
+  tse = open (os.path.join (final_result_dir, "taskStartEnd.txt"), "a")
   # Map tasks to nodes
   task_to_nodes = open (os.path.join (final_result_dir, "taskNode.txt"), "a")
 
@@ -85,7 +85,7 @@ for query in query_list:
         # For containers that were running
         release_am_side={}
         # Type of released container: EXP for expired containers, NEW if new but unused, if not present, consider END (reach end of application life)
-        container_type={} 
+        container_type={}
         first_container_startup_status="NULL"
         first_container_startup=(-1,-1)
         first_container_release=(-1,-1)
@@ -183,7 +183,7 @@ for query in query_list:
               container_acquisition[cnt]=(-1,this_time,-1,"GEN")
             line = amLog.readline()
             continue
-          
+
           # Case: startup/epilogue/release time for the am container
           #--------------------------------------------
           # Case: we just found the beginning of the am container log (header)
@@ -315,7 +315,7 @@ for query in query_list:
           found = myre.AM.log_type.search (line)
           if found:
             tk=found.group(1)
-            # Only if we found a new task log after a previous container, finalize last container 
+            # Only if we found a new task log after a previous container, finalize last container
             #if tk not in TK_STATUS[0] and "START" in TK_STATUS[1]:
             #  tk_start_end[last_task].append(last_time)
             # Initialize the new container:

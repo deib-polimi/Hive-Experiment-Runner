@@ -25,7 +25,7 @@ master="UNSET"
 ####################################
 # Set variables from config/ files #
 ####################################
-for line in open(os.path.join(sys.path[0], "config/python.conf"),"r").read().splitlines():
+for line in open(os.path.join(sys.path[0], "config", "python.conf"),"r").read().splitlines():
   sline = line.strip().split(" ")
   if "ganglia_interval" in sline[0]:
     ganglia_interval = int(sline[1])
@@ -43,7 +43,7 @@ for line in open(os.path.join(sys.path[0], "config/python.conf"),"r").read().spl
     if "true" in sline[1]:
       ganglia = True
 
-for line in open(os.path.join(sys.path[0], "config/variables.sh"),"r").read().splitlines():
+for line in open(os.path.join(sys.path[0], "config", "variables.sh"),"r").read().splitlines():
   if line and line[0] != "#":
     sline = line.rstrip().split("=")
     if "LOG_PATH" in sline[0]:
@@ -54,7 +54,7 @@ for line in open(os.path.join(sys.path[0], "config/variables.sh"),"r").read().sp
 app = sys.argv[1]
 path = sys.argv[2]
 
-hosts = open(os.path.join(sys.path[0], "config/hosts.txt"),"r").read().splitlines()
+hosts = open(os.path.join(sys.path[0], "config", "hosts.txt"),"r").read().splitlines()
 print str(len(hosts)) + " hosts loaded from config/hosts.txt"
 
 ##################################
@@ -93,7 +93,7 @@ for line in out:
   count+=1
   if count%50000==0:
     print str(count/50000)+"x50 K"
-  
+
   if not begun:
     found = app_re.start.search (line)
     if found:
@@ -110,7 +110,7 @@ for line in out:
     if found:
       found = myre.Time.time.search (line)
       print "end!"
-      finished=True 
+      finished=True
       #print finished
       dt_end = myre.Time.dateTime (found)
       started_apps[app] = (started_apps[app][0],dt_end)

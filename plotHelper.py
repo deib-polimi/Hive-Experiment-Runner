@@ -11,14 +11,14 @@ DSTAT_SAMPLE_RATE = "UNSET"
 
 tracker = ""
 
-for line in open(os.path.join(sys.path[0], "config/python.conf"),"r").read().splitlines():
+for line in open(os.path.join(sys.path[0], "config", "python.conf"),"r").read().splitlines():
   sline = line.rstrip().split(" ")
   if "YEAR" in sline[0]:
     YEAR = int(sline[1])
   elif "GANGLIA_SAMPLE_RATE" in sline[0]:
     GANGLIA_SAMPLE_RATE = int(sline[1])
   elif "DSTAT_SAMPLE_RATE" in sline[0]:
-    DSTAT_SAMPLE_RATE = int(sline[1]) 
+    DSTAT_SAMPLE_RATE = int(sline[1])
 
 ganglia_time = r'([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+):([0-9]+).+'
 dstat_time = r'([0-9]+)-([0-9]+) ([0-9]+):([0-9]+):([0-9]+)'
@@ -87,7 +87,7 @@ def getSlice(content,start,end,type='ganglia'):
     timestamp = line.split(",")[0]
     this_time = dateTimeMulti(timestamp,type)
     if not begun:
-      difference = start - this_time 
+      difference = start - this_time
       difference = difference.total_seconds() - GANGLIA_SAMPLE_RATE if "ganglia" in type else difference.total_seconds() - DSTAT_SAMPLE_RATE
       if difference > 0:
         continue
@@ -105,7 +105,7 @@ def getSlice(content,start,end,type='ganglia'):
       extracted.append(line)
   if not gfinished:
     print "Something odd happened, the app end and/or start time could not be found in ganglia metrics"
-    print target_url 
+    print target_url
     print dt_start
     print this_time
     print dt_end
@@ -171,7 +171,7 @@ def aggregateCsv(list_csv):
       driver_dt = this_dt
       driver_index = i
     #else:
-      #print "Passing: "+str(this_dt)+" - "+str(driver_dt) 
+      #print "Passing: "+str(this_dt)+" - "+str(driver_dt)
   if driver_index < 0:
     print "Error, driver element not found"
     exit(-1)
