@@ -3,7 +3,7 @@ import os
 import csv
 
 query_list = []
-for line in open (os.path.join(sys.path[0], "config/variables.sh"), "r").read ().splitlines ():
+for line in open (os.path.join (sys.path[0], "../config/variables.sh"), "r").read ().splitlines ():
   if line and line[0] != "#":
     sline = line.split ("=")
     if "QUERIES" in sline[0]:
@@ -13,7 +13,7 @@ for line in open (os.path.join(sys.path[0], "config/variables.sh"), "r").read ()
 
 class Gantt:
   gantts = 0
-  
+
   def __init__ (self):
     Gantt.gantts += 1
     if __debug__:
@@ -26,7 +26,7 @@ class Gantt:
     self.durations = dict ()
     self.nodes = dict ()
     self.containers = dict ()
-  
+
   def add_phase (self, phase_id):
     if phase_id not in self.phases:
       self.phases.append (phase_id)
@@ -35,7 +35,7 @@ class Gantt:
     else:
       if __debug__:
         print "Failed to add phase {}".format (phase_id)
-  
+
   def add_task (self, phase_id, task_id):
     if phase_id in self.phases:
       self.tasks.append (task_id)
@@ -48,7 +48,7 @@ class Gantt:
     else:
       if __debug__:
         print "Failed to add task {} to phase {}".format (task_id, phase_id)
-  
+
   def set_start_time (self, task_id, start_time):
     if task_id in self.tasks:
       self.starts[task_id] = start_time
@@ -57,7 +57,7 @@ class Gantt:
     else:
       if __debug__:
         print "Failed to add start time to task {}".format (task_id)
-  
+
   def set_end_time (self, task_id, end_time):
     if task_id in self.tasks:
       self.ends[task_id] = end_time
@@ -66,7 +66,7 @@ class Gantt:
     else:
       if __debug__:
         print "Failed to add end time to task {}".format (task_id)
-  
+
   def set_duration (self, task_id, duration):
     if task_id in self.tasks:
       self.durations[task_id] = duration
@@ -75,7 +75,7 @@ class Gantt:
     else:
       if __debug__:
         print "Failed to add duration to task {}".format (task_id)
-  
+
   def set_node (self, task_id, node):
     if task_id in self.tasks:
       self.nodes[task_id] = node
@@ -84,7 +84,7 @@ class Gantt:
     else:
       if __debug__:
         print "Failed to add node to task {}".format (task_id)
-  
+
   def set_container (self, task_id, container):
     if task_id in self.tasks:
       self.containers[task_id] = container
@@ -93,7 +93,7 @@ class Gantt:
     else:
       if __debug__:
         print "Failed to add container to task {}".format (task_id)
-  
+
   def write_csv (self, file):
     field_names = ["Phase", "Task", "Container", "Node", "Start", "End", "Duration"]
     writer = csv.DictWriter (file, fieldnames=field_names)
@@ -121,14 +121,14 @@ for query in query_list:
     continue
   if not os.path.exists (gantts_dir):
     os.mkdir (gantts_dir)
-  
+
   vertex_order_file = open (os.path.join (results_dir, "vertexOrder.txt"), "r")
   vertex_lists_file = open (os.path.join (results_dir, "vertexLtask.txt"), "r")
   task_durations_file = open (os.path.join (results_dir, "taskDurationLO.txt"), "r")
   task_start_end_file = open (os.path.join (results_dir, "taskStartEnd.txt"), "r")
   task_nodes_file = open (os.path.join (results_dir, "taskNode.txt"), "r")
   task_containers_file = open (os.path.join (results_dir, "taskContainer.txt"), "r")
-  
+
   try:
     counter = 0
     for job in vertex_order_file:
@@ -218,7 +218,7 @@ for query in query_list:
           gantt.write_csv (gantt_file)
         except RuntimeError:
           print sys.exc_info ()[1]
-  
+
   finally:
     vertex_order_file.close ()
     vertex_lists_file.close ()
