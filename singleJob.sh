@@ -1,8 +1,8 @@
 #!/bin/bash
 
-USERNAME=${1:?"singleQueue.sh: missing user name"}
-QUEUE=${2:?"singleQueue.sh: missing queue"}
-QUERYNAME=${3:?"singleQueue.sh: missing query name"}
+USERNAME=${1:?"singleJob.sh: missing user name"}
+QUEUE=${2:?"singleJob.sh: missing queue"}
+QUERYNAME=${3:?"singleJob.sh: missing query name"}
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
