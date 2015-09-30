@@ -21,7 +21,5 @@ CURUSER=ubuntu
 DB_NAME="tpcds_text_$SCALE"
 # Path to Resource Manager log file
 LOG_PATH=/var/log/hadoop-yarn/yarn/@@RM_LOG@@
-# Host _hosting_ HiveServer2
-HIVE_SERVER2=slave11
 # Maximum number of RM logs fetch attempts
 FETCH_ATTEMPTS=60
