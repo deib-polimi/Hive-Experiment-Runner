@@ -1,7 +1,11 @@
+#!/usr/bin/env python2 -O
+
 import sys
 import os
 import csv
 import glob
+
+root_directory = sys.argv[1]
 
 query_list = []
 for line in open (os.path.join (sys.path[0], "..", "config", "variables.sh"), "r").read ().splitlines ():
@@ -13,7 +17,7 @@ for line in open (os.path.join (sys.path[0], "..", "config", "variables.sh"), "r
       break
 
 for query in query_list:
-  gantts_dir = os.path.join ("fetched", query, "gantts")
+  gantts_dir = os.path.join (root_directory, query, "gantts")
   if not os.path.exists (gantts_dir):
     print "ERROR: missing gantts directory for {}".format (query)
     continue

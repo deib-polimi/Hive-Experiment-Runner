@@ -1,6 +1,10 @@
+#!/usr/bin/env python2 -O
+
 import sys
 import os
 import csv
+
+root_directory = sys.argv[1]
 
 query_list = []
 for line in open (os.path.join (sys.path[0], "..", "config", "variables.sh"), "r").read ().splitlines ():
@@ -114,10 +118,10 @@ class Gantt:
       raise RuntimeError, "ERROR: incomplete Gantt chart data"
 
 for query in query_list:
-  results_dir = os.path.join ("fetched", query, "results")
-  gantts_dir = os.path.join ("fetched", query, "gantts")
+  results_dir = os.path.join (root_directory, query, "data")
+  gantts_dir = os.path.join (root_directory, query, "gantts")
   if not os.path.exists (results_dir):
-    print "ERROR: missing results directory for " + query
+    print "ERROR: missing data directory for " + query
     continue
   if not os.path.exists (gantts_dir):
     os.mkdir (gantts_dir)
