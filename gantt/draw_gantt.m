@@ -11,10 +11,9 @@ else
   [phases, ~, containers, ~, start, finish] = ...
     textread (filename, "%s %s %s %s %d %d", "delimiter", ",", "headerlines", 1);
   
-  figure;
   phase_names = unique (phases);
   half = ceil (numel (phase_names) / 2);
-  colors = lines (half);
+  colors = cool (half);
   colors = [colors; (1 - colors)];
   idx = zeros (1, 2 * half);
   for (ii = 1:half)
@@ -25,6 +24,7 @@ else
   
   already_in_legend = zeros (size (phase_names));
   
+  figure;
   # This is to avoid warnings for horizontal lines
   axis ([0 10 0 5]);
   max_height = 0;
@@ -52,10 +52,9 @@ else
     endif
   endfor
   grid on;
-  axis ("tight");
+  axis auto;
   
-  # This to workaround a bug
-  legend (phase_names{1}, "location", "northwest");
+  legend ("location", "eastoutside");
   hold off;
 endif
 
