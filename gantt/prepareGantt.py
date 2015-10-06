@@ -1,19 +1,10 @@
 #!/usr/bin/env python2 -O
 
-import sys
-import os
 import csv
+import os
+import sys
 
 root_directory = sys.argv[1]
-
-query_list = []
-for line in open (os.path.join (sys.path[0], "..", "config", "variables.sh"), "r").read ().splitlines ():
-  if line and line[0] != "#":
-    sline = line.split ("=")
-    if "QUERIES" in sline[0]:
-      query_list = sline[1].strip ("\"").split (" ")
-      print "Working on the following queries: " + str (query_list)
-      break
 
 class Gantt:
   gantts = 0
@@ -117,116 +108,115 @@ class Gantt:
     except KeyError:
       raise RuntimeError, "ERROR: incomplete Gantt chart data"
 
-for query in query_list:
-  results_dir = os.path.join (root_directory, query, "data")
-  gantts_dir = os.path.join (root_directory, query, "gantts")
-  if not os.path.exists (results_dir):
-    print "ERROR: missing data directory for " + query
-    continue
-  if not os.path.exists (gantts_dir):
-    os.mkdir (gantts_dir)
+results_dir = os.path.join (root_directory, "data")
+gantts_dir = os.path.join (root_directory, "gantts")
+if not os.path.exists (results_dir):
+  print "ERROR: missing data directory in " + root_directory
+  sys.exit (1)
+if not os.path.exists (gantts_dir):
+  os.mkdir (gantts_dir)
 
-  vertex_order_file = open (os.path.join (results_dir, "vertexOrder.txt"), "r")
-  vertex_lists_file = open (os.path.join (results_dir, "vertexLtask.txt"), "r")
-  task_durations_file = open (os.path.join (results_dir, "taskDurationLO.txt"), "r")
-  task_start_end_file = open (os.path.join (results_dir, "taskStartEnd.txt"), "r")
-  task_nodes_file = open (os.path.join (results_dir, "taskNode.txt"), "r")
-  task_containers_file = open (os.path.join (results_dir, "taskContainer.txt"), "r")
+vertex_order_file = open (os.path.join (results_dir, "vertexOrder.txt"), "r")
+vertex_lists_file = open (os.path.join (results_dir, "vertexLtask.txt"), "r")
+task_durations_file = open (os.path.join (results_dir, "taskDurationLO.txt"), "r")
+task_start_end_file = open (os.path.join (results_dir, "taskStartEnd.txt"), "r")
+task_nodes_file = open (os.path.join (results_dir, "taskNode.txt"), "r")
+task_containers_file = open (os.path.join (results_dir, "taskContainer.txt"), "r")
 
-  try:
-    counter = 0
-    for job in vertex_order_file:
-      gantt = Gantt ()
-      for phase in job.strip ().split ("\t"):
+try:
+  counter = 0
+  for job in vertex_order_file:
+    gantt = Gantt ()
+    for phase in job.strip ().split ("\t"):
+      phase = phase.strip ()
+      if phase:
+        gantt.add_phase (phase)
+    for line in vertex_lists_file:
+      line = line.strip ()
+      if line:
+        phase, separator, line = line.partition ("\t")
         phase = phase.strip ()
-        if phase:
-          gantt.add_phase (phase)
-      for line in vertex_lists_file:
-        line = line.strip ()
-        if line:
-          phase, separator, line = line.partition ("\t")
-          phase = phase.strip ()
-          for task in line.strip ().split ("\t"):
-            task = task.strip ()
-            if task:
-              gantt.add_task (phase, task)
-        else:
-          break
-      for line in task_start_end_file:
-        line = line.strip ()
-        if line:
-          looking_for = "task"
-          for word in line.strip ().split ("\t"):
-            word = word.strip ()
-            if word:
-              if looking_for == "task":
-                task = word
-                looking_for = "start"
-              elif looking_for == "start":
-                gantt.set_start_time (task, word)
-                looking_for = "end"
-              elif looking_for == "end":
-                gantt.set_end_time (task, word)
-                break
-        else:
-          break
-      for line in task_durations_file:
-        line = line.strip ()
-        if line:
-          looking_for = "task"
-          for word in line.strip ().split ("\t"):
-            word = word.strip ()
-            if word:
-              if looking_for == "task":
-                task = word
-                looking_for = "duration"
-              elif looking_for == "duration":
-                gantt.set_duration (task, word)
-                break
-        else:
-          break
-      for line in task_nodes_file:
-        line = line.strip ()
-        if line:
-          looking_for = "task"
-          for word in line.strip ().split ("\t"):
-            word = word.strip ()
-            if word:
-              if looking_for == "task":
-                task = word
-                looking_for = "node"
-              elif looking_for == "node":
-                gantt.set_node (task, word)
-                break
-        else:
-          break
-      for line in task_containers_file:
-        line = line.strip ()
-        if line:
-          looking_for = "task"
-          for word in line.strip ().split ("\t"):
-            word = word.strip ()
-            if word:
-              if looking_for == "task":
-                task = word
-                looking_for = "container"
-              elif looking_for == "container":
-                gantt.set_container (task, word)
-                break
-        else:
-          break
-      filename = "gantt{0:06d}.csv".format (counter)
-      counter += 1
-      with open (os.path.join (gantts_dir, filename), "w") as gantt_file:
-        try:
-          gantt.write_csv (gantt_file)
-        except RuntimeError:
-          print sys.exc_info ()[1]
+        for task in line.strip ().split ("\t"):
+          task = task.strip ()
+          if task:
+            gantt.add_task (phase, task)
+      else:
+        break
+    for line in task_start_end_file:
+      line = line.strip ()
+      if line:
+        looking_for = "task"
+        for word in line.strip ().split ("\t"):
+          word = word.strip ()
+          if word:
+            if looking_for == "task":
+              task = word
+              looking_for = "start"
+            elif looking_for == "start":
+              gantt.set_start_time (task, word)
+              looking_for = "end"
+            elif looking_for == "end":
+              gantt.set_end_time (task, word)
+              break
+      else:
+        break
+    for line in task_durations_file:
+      line = line.strip ()
+      if line:
+        looking_for = "task"
+        for word in line.strip ().split ("\t"):
+          word = word.strip ()
+          if word:
+            if looking_for == "task":
+              task = word
+              looking_for = "duration"
+            elif looking_for == "duration":
+              gantt.set_duration (task, word)
+              break
+      else:
+        break
+    for line in task_nodes_file:
+      line = line.strip ()
+      if line:
+        looking_for = "task"
+        for word in line.strip ().split ("\t"):
+          word = word.strip ()
+          if word:
+            if looking_for == "task":
+              task = word
+              looking_for = "node"
+            elif looking_for == "node":
+              gantt.set_node (task, word)
+              break
+      else:
+        break
+    for line in task_containers_file:
+      line = line.strip ()
+      if line:
+        looking_for = "task"
+        for word in line.strip ().split ("\t"):
+          word = word.strip ()
+          if word:
+            if looking_for == "task":
+              task = word
+              looking_for = "container"
+            elif looking_for == "container":
+              gantt.set_container (task, word)
+              break
+      else:
+        break
+    filename = "gantt{0:06d}.csv".format (counter)
+    counter += 1
+    with open (os.path.join (gantts_dir, filename), "w") as gantt_file:
+      try:
+        gantt.write_csv (gantt_file)
+      except RuntimeError:
+        print sys.exc_info ()[1]
 
-  finally:
-    vertex_order_file.close ()
-    vertex_lists_file.close ()
-    task_durations_file.close ()
-    task_start_end_file.close ()
-    task_nodes_file.close ()
-    task_containers_file.close ()
+finally:
+  vertex_order_file.close ()
+  vertex_lists_file.close ()
+  task_durations_file.close ()
+  task_start_end_file.close ()
+  task_nodes_file.close ()
+  task_containers_file.close ()
