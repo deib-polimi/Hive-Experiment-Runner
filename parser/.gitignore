@@ -5,3 +5,5 @@
 .settings/
 bin/
 target/
+.idea
+.idea/**
