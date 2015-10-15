@@ -17,14 +17,14 @@ object Parser {
     Sequence, VertexListOfTasks, TaskNodes,
     TaskContainers) = {
     println("Starting " + filename)
-    val lines = Source.fromFile(filename).getLines();
+    val lines = Source.fromFile(filename).getLines()
 
-    val start = System.currentTimeMillis();
-    val finalStatus = lines.foldLeft(Start : Status)(_ next _);
-    val stop = System.currentTimeMillis();
-    val i = new File(filename).length;
-    println("Finished in " + ((stop - start).toDouble / 1000) + " s");
-    val ratio = i.toLong * 1000 / (stop-start);
+    val start = System.currentTimeMillis()
+    val finalStatus = lines.foldLeft(Start : Status)(_ next _)
+    val stop = System.currentTimeMillis()
+    val i = new File(filename).length
+    println("Finished in " + ((stop - start).toDouble / 1000) + " s")
+    val ratio = i.toLong * 1000 / (stop-start)
     println(i + ": " + ratio/1000 + "KB/s")
     (StartEnd (finalStatus.times), Durations (finalStatus.times),
       StartEnd (finalStatus.shuffleTimes), Durations (finalStatus.shuffleTimes),
@@ -86,8 +86,8 @@ object Parser {
         if (content.last == '\n') content
         else content :+ '\n'
       }
-      out.flush
-      out.close
+      out.flush()
+      out.close()
     }
   }
 
