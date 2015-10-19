@@ -51,18 +51,20 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
   def containerToNodes: Map[String, String] = cn
   def shuffleTimes: Map[String, (Long, Long)] = stm
 
+  val statusRegex : StatusRegex = HiveTez
+
   protected def parseTime(input : String) =
     new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss,SSS", Locale.ENGLISH).parse (input).getTime
 
   def next (line : String) : Status = {
 
-    def nextVertices(): Seq[String] = StatusRegex.vertex findFirstMatchIn line match {
+    def nextVertices(): Seq[String] = statusRegex.vertex findFirstMatchIn line match {
       case Some (m) => vertices :+ (m group 1)
       case None => vertices
     }
 
     def nextTaskToVertices(): Map[String, Seq[String]] =
-      StatusRegex.taskToVertex findFirstMatchIn line match {
+      statusRegex.taskToVertex findFirstMatchIn line match {
         case Some (m) =>
           val (vertex, task) = (m group 1, m group 2)
           if (taskToVertices contains vertex) {
@@ -77,7 +79,7 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
       }
 
     def nextTaskToContainers(): Map[String, String] =
-      StatusRegex.taskToContainer findFirstMatchIn line match {
+      statusRegex.taskToContainer findFirstMatchIn line match {
         case Some (m) =>
           val (task, container) = (m group 1, m group 2)
           taskToContainers + (task -> container)
@@ -85,13 +87,13 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
       }
 
     def nextTaskOrder(): Seq[String] =
-      StatusRegex.taskToContainer findFirstMatchIn line match {
+      statusRegex.taskToContainer findFirstMatchIn line match {
         case Some (m) => taskOrder :+ (m group 1)
         case None => taskOrder
       }
 
     def nextContainerToNodes(): Map[String, String] =
-      StatusRegex.receivedContainer findFirstMatchIn line match {
+      statusRegex.receivedContainer findFirstMatchIn line match {
         case Some (m) =>
           val (container, node) = (m group 1, m group 2)
           containerToNodes + (container -> node)
@@ -100,7 +102,7 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
 
     this match {
       case Waiting (_, _, _, _, _, _, _) =>
-        val name = StatusRegex.init findFirstIn line
+        val name = statusRegex.init findFirstIn line
         if (name.isDefined) Init (name.get, times, nextVertices(), nextTaskToVertices(),
           nextTaskToContainers(), nextTaskOrder(),
           nextContainerToNodes(), shuffleTimes)
@@ -109,7 +111,7 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
           nextContainerToNodes(), shuffleTimes)
 
       case Init (name, _, _, _, _, _, _, _) =>
-        val when = StatusRegex.date findFirstIn line
+        val when = statusRegex.date findFirstIn line
         if (when.isDefined) {
           val time = parseTime (when.get)
           Started (name, time, time, times, nextVertices(), nextTaskToVertices(),
@@ -123,7 +125,7 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
       case Started (name, start, end, _, _, _, _, _, _, _) =>
         def lookForShuffle = {
           def updateTime() = {
-            val time = StatusRegex.date findFirstIn line
+            val time = statusRegex.date findFirstIn line
             if (time.isDefined) Started (name, start, parseTime (time.get),
               times, nextVertices(), nextTaskToVertices(),
               nextTaskToContainers(), nextTaskOrder(),
@@ -132,9 +134,9 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
               nextTaskToVertices(), nextTaskToContainers(),
               nextTaskOrder(), nextContainerToNodes(), shuffleTimes)
           }
-          StatusRegex.startingShuffle findFirstMatchIn line match {
+          statusRegex.startingShuffle findFirstMatchIn line match {
             case Some (_) =>
-              val time = parseTime ((StatusRegex.date findFirstIn line).get)
+              val time = parseTime ((statusRegex.date findFirstIn line).get)
               Shuffling (name, start, time, time, times, nextVertices(),
                 nextTaskToVertices(), nextTaskToContainers(),
                 nextTaskOrder(), nextContainerToNodes(), shuffleTimes)
@@ -147,10 +149,9 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
           shuffleTimes)
         else lookForShuffle
 
-      case Shuffling (name, startTask, endTask, startShuffle,
-      _, _, _, _, _, _, _) =>
+      case Shuffling (name, startTask, endTask, startShuffle, _, _, _, _, _, _, _) =>
         def updateTime() = {
-          val time = StatusRegex.date findFirstIn line
+          val time = statusRegex.date findFirstIn line
           if (time.isDefined) Shuffling (name, startTask, parseTime (time.get),
             startShuffle, times, nextVertices(),
             nextTaskToVertices(), nextTaskToContainers(),
@@ -160,9 +161,9 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
             nextVertices(), nextTaskToVertices(), nextTaskToContainers(),
             nextTaskOrder(), nextContainerToNodes(), shuffleTimes)
         }
-        StatusRegex.endingShuffle findFirstMatchIn line match {
+        statusRegex.endingShuffle findFirstMatchIn line match {
           case Some (_) =>
-            val time = parseTime ((StatusRegex.date findFirstIn line).get)
+            val time = parseTime ((statusRegex.date findFirstIn line).get)
             Started (name, startTask, time, times, nextVertices(),
               nextTaskToVertices(), nextTaskToContainers(), nextTaskOrder(),
               nextContainerToNodes(),
@@ -171,15 +172,4 @@ abstract class Status (tm : Map[String, (Long, Long)], vs : Seq[String],
         }
     }
   }
-}
-
-object StatusRegex {
-  val init = """(?<=LogType:syslog_)attempt_\d+_\d+_\d+_\d+_\d+_\d+""".r
-  val date = """\d+-\d+-\d+ \d+:\d+:\d+,\d+""".r
-  val vertex = """Routing pending task events for vertex: vertex_\d+_\d+_\d+_\d+ \[(.+)\]""".r
-  val taskToVertex = """impl.TaskAttemptImpl: remoteTaskSpec:DAGName.+VertexName: (.+), VertexParallelism.+TaskAttemptID:(attempt_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+)""".r
-  val taskToContainer = """Assigned taskAttempt.+(attempt_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+_[0-9]+).+to container:.+(container_[0-9]+_[0-9]+_[0-9]+_[0-9]+)""".r
-  val receivedContainer = """Assigning container to task, container=Container: \[ContainerId: (container_[0-9]+_[0-9]+_[0-9]+_[0-9]+).* containerHost=(\w+)""".r
-  val startingShuffle = """orderedgrouped.Shuffle: Shuffle assigned with""".r
-  val endingShuffle = """orderedgrouped.Shuffle: Shutting down Shuffle for source""".r
 }
