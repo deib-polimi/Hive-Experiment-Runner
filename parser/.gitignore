@@ -1,9 +1,0 @@
-.cache
-.cache-main
-.classpath
-.project
-.settings/
-bin/
-target/
-.idea
-.idea/**
