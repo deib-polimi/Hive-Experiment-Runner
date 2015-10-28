@@ -22,7 +22,7 @@ git clone https://github.com/hortonworks/hive-testbench.git
 cd hive-testbench/tpcds-gen
 wget home.deib.polimi.it/arizzi/tpcds_kit.zip
 cd ..
-sudo apt-get -y install gcc make
+sudo apt-get -y install gcc make maven2
 ./tpcds-build.sh
 ./tpcds-setup.sh "${SCALE}" "${SCRATCH_DIR}"
 
