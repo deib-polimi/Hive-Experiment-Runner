@@ -7,7 +7,7 @@ fi
 
 isnumber() { test "$1" && printf '%d' "$1" > /dev/null 2>&1; }
 
-if [ ! isnumber $1 ]; then
+if ! isnumber "$1"; then
   echo "dataset.sh: an integer is needed as SCALE" >&2
   exit 2
 fi
@@ -22,7 +22,7 @@ git clone https://github.com/hortonworks/hive-testbench.git
 cd hive-testbench/tpcds-gen
 wget home.deib.polimi.it/arizzi/tpcds_kit.zip
 cd ..
-sudo apt-get -y install gcc make maven2
+sudo apt-get -y install gcc make
 ./tpcds-build.sh
 ./tpcds-setup.sh "${SCALE}" "${SCRATCH_DIR}"
 
