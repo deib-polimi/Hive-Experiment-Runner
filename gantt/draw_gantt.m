@@ -45,9 +45,9 @@ else
     
     idx = find (strcmp (phase_names, phases{ii}));
     if (already_in_legend(idx))
-      plot (x, y, "color", colors(idx, :), "linewidth", line_width);
+      plot (x, y, "d:", "color", colors(idx, :), "linewidth", line_width);
     else
-      plot (x, y, "color", colors(idx, :), "linewidth", line_width , "DisplayName", phase_names{idx});
+      plot (x, y, "d:", "color", colors(idx, :), "linewidth", line_width , "DisplayName", phase_names{idx});
       already_in_legend(idx) = true;
     endif
   endfor
