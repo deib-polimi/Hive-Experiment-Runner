@@ -1,10 +1,14 @@
 import csv
 import os
+import re
 import sys
 
 root_directory = sys.argv[1]
 
 class Gantt:
+  shuffle_suffix = "_SHUFFLE"
+  shuffle_pattern = re.compile (r"(.*)" + shuffle_suffix)
+  reduce_name = re.compile (r"Reducer (\d*)")
   gantts = 0
 
   def __init__ (self):
@@ -20,11 +24,21 @@ class Gantt:
     self.nodes = dict ()
     self.containers = dict ()
 
+  @staticmethod
+  def generate_shuffle_id (task_id):
+    return task_id + Gantt.shuffle_suffix
+
   def add_phase (self, phase_id):
     if phase_id not in self.phases:
       self.phases.append (phase_id)
       if __debug__:
         print "Added phase {}".format (phase_id)
+      matched = Gantt.reduce_name.match (phase_id)
+      if matched:
+        phase_id = "Shuffle " + matched.group (1)
+        self.phases.append (phase_id)
+        if __debug__:
+          print "Added phase {}".format (phase_id)
     else:
       if __debug__:
         print "Failed to add phase {}".format (phase_id)
@@ -38,6 +52,17 @@ class Gantt:
         self.tasks_per_phase[phase_id].append (task_id)
       if __debug__:
         print "Added task {} to phase {}".format (task_id, phase_id)
+      matched = Gantt.reduce_name.match (phase_id)
+      if matched:
+        shuffle_phase = "Shuffle " + matched.group (1)
+        shuffle_task = Gantt.generate_shuffle_id (task_id)
+        self.tasks.append (shuffle_task)
+        if shuffle_phase not in self.tasks_per_phase:
+          self.tasks_per_phase[shuffle_phase] = [shuffle_task]
+        else:
+          self.tasks_per_phase[shuffle_phase].append (shuffle_task)
+        if __debug__:
+          print "Added task {} to phase {}".format (shuffle_task, shuffle_phase)
     else:
       if __debug__:
         print "Failed to add task {} to phase {}".format (task_id, phase_id)
@@ -69,6 +94,19 @@ class Gantt:
       if __debug__:
         print "Failed to add duration to task {}".format (task_id)
 
+  def change_duration (self, task_id, difference):
+    if task_id in self.tasks:
+      try:
+        new_duration = int (self.durations[task_id]) - int (difference)
+        self.durations[task_id] = str (new_duration)
+      except ValueError:
+        raise RuntimeError, "ERROR: conversion error while changing duration value"
+      if __debug__:
+        print "Changed duration to task {}".format (task_id)
+    else:
+      if __debug__:
+        print "Failed to change duration to task {}".format (task_id)
+
   def set_node (self, task_id, node):
     if task_id in self.tasks:
       self.nodes[task_id] = node
@@ -96,12 +134,17 @@ class Gantt:
         if __debug__:
           print "Working on phase {}".format (phase)
         for task in self.tasks_per_phase[phase]:
+          matched = Gantt.shuffle_pattern.match (task)
+          if matched:
+            alt_task = matched.group (1)
+          else:
+            alt_task = task
           if __debug__:
-            print "Writing data of task {}".format (task)
-          row = {"Phase" : phase, "Task" : task, "Node" : self.nodes[task],
+            print "Writing data of task {}".format (alt_task)
+          row = {"Phase" : phase, "Task" : alt_task, "Node" : self.nodes[alt_task],
                  "Start" : self.starts[task], "End" : self.ends[task],
                  "Duration" : self.durations[task],
-                 "Container" : self.containers[task]}
+                 "Container" : self.containers[alt_task]}
           writer.writerow (row)
     except KeyError:
       raise RuntimeError, "ERROR: incomplete Gantt chart data"
@@ -120,6 +163,8 @@ task_durations_file = open (os.path.join (results_dir, "taskDurationLO.txt"), "r
 task_start_end_file = open (os.path.join (results_dir, "taskStartEnd.txt"), "r")
 task_nodes_file = open (os.path.join (results_dir, "taskNode.txt"), "r")
 task_containers_file = open (os.path.join (results_dir, "taskContainer.txt"), "r")
+shuffle_durations_file = open (os.path.join (results_dir, "shuffleDurationLO.txt"), "r")
+shuffle_start_end_file = open (os.path.join (results_dir, "shuffleStartEnd.txt"), "r")
 
 try:
   counter = 0
@@ -173,6 +218,43 @@ try:
               break
       else:
         break
+    for line in shuffle_start_end_file:
+      line = line.strip ()
+      if line:
+        looking_for = "task"
+        for word in line.strip ().split ("\t"):
+          word = word.strip ()
+          if word:
+            if looking_for == "task":
+              original_task = word
+              task = Gantt.generate_shuffle_id (original_task)
+              looking_for = "start"
+            elif looking_for == "start":
+              gantt.set_start_time (task, word)
+              looking_for = "end"
+            elif looking_for == "end":
+              gantt.set_end_time (task, word)
+              gantt.set_start_time (original_task, word)
+              break
+      else:
+        break
+    for line in shuffle_durations_file:
+      line = line.strip ()
+      if line:
+        looking_for = "task"
+        for word in line.strip ().split ("\t"):
+          word = word.strip ()
+          if word:
+            if looking_for == "task":
+              original_task = word
+              task = Gantt.generate_shuffle_id (original_task)
+              looking_for = "duration"
+            elif looking_for == "duration":
+              gantt.set_duration (task, word)
+              gantt.change_duration (original_task, word)
+              break
+      else:
+        break
     for line in task_nodes_file:
       line = line.strip ()
       if line:
@@ -218,3 +300,5 @@ finally:
   task_start_end_file.close ()
   task_nodes_file.close ()
   task_containers_file.close ()
+  shuffle_durations_file.close ()
+  shuffle_start_end_file.close ()
