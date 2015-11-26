@@ -1,4 +1,4 @@
-# This will write on file the dependencies of the vertexes (serialized)
+# This will write on file the dependencies of the vertices (serialized)
 # It will run just once for the given query, since every run would be the same
 # Args: file with hive explain output, path to destination file
 try:
@@ -12,48 +12,42 @@ import os
 query = str(sys.argv[1])
 path = str(sys.argv[2])
 dependencies = {}
-fout=open(path,"w")
 
-# Obtain dag structure by querying hive, build dependencies among vertexes and prepare other vertex structures
+starting_dependency_listing = re.compile (r'Vertex dependency')
+new_dependency = re.compile (r'(.+[0-9]+) \(.+\)')
+
+# Obtain dag structure by querying hive, build dependencies among vertices and prepare other vertex structures
 print("Get DAG structure from HIVE output...")
 
-out = open(query,"r").readlines()
-skip = True
-for line in out:
-  if skip==True:
-    found = re.search(r'.*Edges:', line)
-    if found:
-      skip=False
-      continue
-  if skip==False:
-    line = line.strip()
-    #print line
-    if "<-" not in line:
-      break
-    sline = line.split("<-")
-    #print sline
-    vx = sline[0].strip()
-    dependencies[vx]=[]
-    deps = sline[1].split(",")
-    #print deps
-    for dep in deps:
-      found = re.search(r'(.+[0-9]+) \(.+\)',dep)
+with open (query, "r") as infile:
+  deps_found = False
+  for line in infile:
+    if not deps_found:
+      found = starting_dependency_listing.search (line)
       if found:
-        dep = found.group(1)
-        #print dep
-      else:
-        print("Unexpected vertex name: ")+dep
-        exit(-1)
-      dependencies[vx].append(dep.strip())
-  #print line
-if skip==True:
-  print("Could not catch begin of dag description, aborting.")
-  exit(-1)
+        deps_found = True
+    else:
+      line = line.strip()
+      if "<-" not in line:
+        break
+      sline = line.split("<-")
+      vx = sline[0].strip()
+      dependencies[vx]=[]
+      deps = sline[1].split(",")
+      for dep in deps:
+        found = new_dependency.search (dep)
+        if found:
+          dep = found.group(1)
+        else:
+          print "Unexpected vertex name: {dep}".format (dep=dep)
+          sys.exit (-1)
+        dependencies[vx].append(dep.strip())
+  if not deps_found:
+    print "Could not catch begin of DAG description, aborting."
+    sys.exit (-1)
 
+with open (path, "w") as outfile:
+  outfile.write (pickle.dumps (dependencies))
 
-fout.write(pickle.dumps(dependencies))
-fout.flush()
-fout.close()
-
-print("List of dependencies: ")
-print(dependencies)
+print "List of dependencies: "
+print dependencies
