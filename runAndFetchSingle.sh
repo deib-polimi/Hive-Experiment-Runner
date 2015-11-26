@@ -124,7 +124,7 @@ for QUERYNAME in ${QUERIES}; do
             echo "Finished app: $strresult"
             echo "$strresult" >> fetched/$QUERYNAME/apps_$QUERYNAME.txt
             echo "$strresult" >> "${SCRIPT_DIR}/scratch/apps.tmp"
-            echo "${strresult}\n${TST}\t${TND}">> fetched/$QUERYNAME/real_start_end.txt
+            echo -e "${strresult}\t${TST}\t${TND}">> fetched/$QUERYNAME/real_start_end.txt
             break
           fi
         done < "${tmp_file}"
