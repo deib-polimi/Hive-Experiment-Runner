@@ -17,7 +17,6 @@ CURHOST=$(hostname)
 for QUERYNAME in ${QUERIES}; do
   # INIT
   EXTERNALCOUNTER=1
-  EXCEED=0
 
   rm -r -f fetched/$QUERYNAME
   mkdir -p fetched/$QUERYNAME
@@ -94,46 +93,29 @@ for QUERYNAME in ${QUERIES}; do
     tmp_file="${SCRIPT_DIR}/scratch/temp.tmp"
     while [ $COUNTER -le $INTERNALITER ]; do
       echo "Running query. Attempt $COUNTER"
-      start_file="${SCRIPT_DIR}/scratch/start.tmp"
-      end_file="${SCRIPT_DIR}/scratch/end.tmp"
-      touch "${start_file}"
       TST=$(date +"%T.%3N")
       hive -i "${init_file}" \
         -f "${SCRIPT_DIR}/queries/${QUERYNAME}.${QUERYEXTENSION}" \
         > "${tmp_file}" 2>&1
       TND=$(date +"%T.%3N")
-      touch -d "-120 seconds" "${end_file}"
-      # If the execution of the query took more than 2 minute (usually it takes 50 secs),
-      # the cluster could have stalled at some point, ignore this execution
-      # Skip this on production
-      if [ $ISPOLICLOUD -eq 1 ] && [ "${end_file}" -nt "${start_file}" ]; then
-        echo "skipping current execution because it took too long"
-        EXCEED=$(( $EXCEED + 1 ))
-        # Wait 1 minutes for the cluster to recover
-        echo "Next attempt in 60s"
-        sleep 60s
-        continue
-      else
-        rm -f ${start_file} ${end_file}
-        ##########################################
-        # Save app name in permanent and temporary file #
-        ##########################################
-        while read -r line; do
-          if [[ $line =~ .*(application_[0-9]+_[0-9]+).* ]]; then
-            strresult=${BASH_REMATCH[1]}
-            echo "Finished app: $strresult"
-            echo "$strresult" >> fetched/$QUERYNAME/apps_$QUERYNAME.txt
-            echo "$strresult" >> "${SCRIPT_DIR}/scratch/apps.tmp"
-            echo -e "${strresult}\t${TST}\t${TND}">> fetched/$QUERYNAME/real_start_end.txt
-            break
-          fi
-        done < "${tmp_file}"
-        rm -f "${tmp_file}"
-      fi
+
+      ##########################################
+      # Save app name in permanent and temporary file #
+      ##########################################
+      while read -r line; do
+        if [[ $line =~ .*(application_[0-9]+_[0-9]+).* ]]; then
+          strresult=${BASH_REMATCH[1]}
+          echo "Finished app: $strresult"
+          echo "$strresult" >> fetched/$QUERYNAME/apps_$QUERYNAME.txt
+          echo "$strresult" >> "${SCRIPT_DIR}/scratch/apps.tmp"
+          echo -e "${strresult}\t${TST}\t${TND}">> fetched/$QUERYNAME/real_start_end.txt
+          break
+        fi
+      done < "${tmp_file}"
+      rm -f "${tmp_file}"
+
       COUNTER=$(( $COUNTER + 1 ))
     done
-
-    echo "Totally exceeded $EXCEED times"
 
     ############################################################
     # Wait some secs for flushing of previous logs, 2 mins should be enough #

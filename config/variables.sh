@@ -12,8 +12,6 @@ QUERIES="R1 R2 R3 R4"
 
 # TPC-DS dataset scale parameter
 SCALE=250
-# 1 if we are on policloud and expect latency peaks
-ISPOLICLOUD=0
 # The hostname of the node hosting the Resource Manager
 MASTER=slave10
 # User for ssh-ing into other nodes
