@@ -18,8 +18,8 @@ for QUERYNAME in ${QUERIES}; do
   # INIT
   EXTERNALCOUNTER=1
 
-  rm -r -f fetched/$QUERYNAME
-  mkdir -p fetched/$QUERYNAME
+  rm -r -f "fetched/${QUERYNAME}"
+  mkdir -p "fetched/${QUERYNAME}"
   # Renewed here and at every external loop, the incremental list is in the queries output folder
   rm -f "${SCRIPT_DIR}/scratch/apps.tmp"
 
@@ -33,7 +33,7 @@ for QUERYNAME in ${QUERIES}; do
       continue
     fi
     echo "Stopping dstat on ${host_name}"
-    < /dev/null ssh -n -f ${CURUSER}@${host_name} "pkill -f '.+/usr/bin/dstat.+'"
+    < /dev/null ssh -n -f "${CURUSER}@${host_name}" "pkill -f '.+/usr/bin/dstat.+'"
   done < "${SCRIPT_DIR}/config/hosts.txt"
   # Plus localhost
   echo "Stopping dstat on $CURHOST"
@@ -44,21 +44,21 @@ for QUERYNAME in ${QUERIES}; do
       continue
     fi
     echo "Cleaning old dstat log on ${host_name}"
-    < /dev/null ssh -n -f ${CURUSER}@${host_name} "rm -f /tmp/*.csv"
+    < /dev/null ssh -n -f "${CURUSER}@${host_name}" "rm -f /tmp/stats.*.csv"
   done < "${SCRIPT_DIR}/config/hosts.txt"
   # Plus localhost
-  rm -f /tmp/*.csv
+  rm -f /tmp/stats.*.csv
 
   while read host_name; do
     if [ "x${CURHOST}" = "x${host_name}" ]; then
       continue
     fi
     echo "Starting dstat on ${host_name}"
-    < /dev/null ssh -n -f ${CURUSER}@${host_name} "nohup dstat -tcmnd --output /tmp/stats.${host_name}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
+    < /dev/null ssh -n -f "${CURUSER}@${host_name}" "nohup dstat -tcmnd --output '/tmp/stats.${host_name}.csv' 5 3000 > /dev/null 2> /dev/null < /dev/null &"
   done < "${SCRIPT_DIR}/config/hosts.txt"
   #Plus localhost
   echo "Starting dstat on $CURHOST"
-  dstat -tcmnd --output /tmp/stats.${CURHOST}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &
+  dstat -tcmnd --output "/tmp/stats.${CURHOST}.csv" 5 3000 > /dev/null 2> /dev/null < /dev/null &
   echo "Done, wait 5 secs to be sure they are all running."
   sleep 5s
 
@@ -71,7 +71,7 @@ for QUERYNAME in ${QUERIES}; do
     # Get query explain from hive to build dependencies #
     #####################################################
     init_file="${SCRIPT_DIR}/scratch/init.sql"
-    if [ ! -f fetched/$QUERYNAME/dependencies.bin ]; then
+    if [ ! -f "fetched/$QUERYNAME/dependencies.bin" ]; then
       q=$(cat "${SCRIPT_DIR}/queries/${QUERYNAME}.${QUERYEXTENSION}")
       explain_query="explain ${q}"
       echo "$explain_query" > "${SCRIPT_DIR}/scratch/deleteme.tmp"
@@ -80,7 +80,7 @@ for QUERYNAME in ${QUERIES}; do
         > "${init_file}"
       explain=$(hive -i "${init_file}" -f "${SCRIPT_DIR}/scratch/deleteme.tmp")
       echo "${explain}" > "${SCRIPT_DIR}/scratch/deleteme.tmp"
-      python "${SCRIPT_DIR}/buildDeps.py" "${SCRIPT_DIR}/scratch/deleteme.tmp" fetched/$QUERYNAME/dependencies.bin
+      python "${SCRIPT_DIR}/buildDeps.py" "${SCRIPT_DIR}/scratch/deleteme.tmp" "fetched/$QUERYNAME/dependencies.bin"
       echo "Dependencies loaded in fetched/$QUERYNAME/dependencies.bin"
       rm "${SCRIPT_DIR}/scratch/deleteme.tmp"
     else
@@ -106,9 +106,9 @@ for QUERYNAME in ${QUERIES}; do
         if [[ $line =~ .*(application_[0-9]+_[0-9]+).* ]]; then
           strresult=${BASH_REMATCH[1]}
           echo "Finished app: $strresult"
-          echo "$strresult" >> fetched/$QUERYNAME/apps_$QUERYNAME.txt
+          echo "$strresult" >> "fetched/$QUERYNAME/apps_$QUERYNAME.txt"
           echo "$strresult" >> "${SCRIPT_DIR}/scratch/apps.tmp"
-          echo -e "${strresult}\t${TST}\t${TND}">> fetched/$QUERYNAME/real_start_end.txt
+          echo -e "${strresult}\t${TST}\t${TND}" >> "fetched/$QUERYNAME/real_start_end.txt"
           break
         fi
       done < "${tmp_file}"
@@ -135,30 +135,30 @@ for QUERYNAME in ${QUERIES}; do
       if [ ! -f /tmp/log.txt ]; then
         if [ "x$CURHOST" = "x$MASTER" ]; then
           echo "Fetching RM log from local (we are on master)"
-          tail ${LOG_PATH} -c 20MB > /tmp/log.txt
+          tail "${LOG_PATH}" -c 20MB > /tmp/log.txt
         else
           echo "Fetching RM log from master"
-          < /dev/null ssh $MASTER "tail ${LOG_PATH} -c 20MB > /tmp/log.txt"
-          < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
+          < /dev/null ssh "$MASTER" "tail '${LOG_PATH}' -c 20MB > /tmp/log.txt"
+          < /dev/null scp "${MASTER}":/tmp/log.txt /tmp/log.txt
         fi
       else
         echo "RM already fetched. Moving on..."
       fi
-      python "${SCRIPT_DIR}/logExtract.py" $appname fetched/$QUERYNAME/
+      python "${SCRIPT_DIR}/logExtract.py" $appname "fetched/$QUERYNAME/"
       PRESULT=$?
       while [ $PRESULT -eq 255 ] && [ $CATTEMPT -le $FETCH_ATTEMPTS ]; do
         sleep 10s
-        fetch_command="cat ${LOG_PATH}.1 ${LOG_PATH} | tail -c 20MB > /tmp/log.txt"
+        fetch_command="cat '${LOG_PATH}.1' '${LOG_PATH}' | tail -c 20MB > /tmp/log.txt"
         if [ "x$CURHOST" = "x$MASTER" ]; then
           echo "Fetching RM log from local (we are on master)"
           eval ${fetch_command}
         else
           echo "Fetching RM log from master"
-          < /dev/null ssh $MASTER "${fetch_command}"
-          < /dev/null scp ${MASTER}:/tmp/log.txt /tmp/log.txt
+          < /dev/null ssh "$MASTER" "${fetch_command}"
+          < /dev/null scp "${MASTER}":/tmp/log.txt /tmp/log.txt
         fi
         echo "Trying to fetch log again because end of RM log was not found... Attempt $CATTEMPT"
-        python "${SCRIPT_DIR}/logExtract.py" $appname fetched/$QUERYNAME/
+        python "${SCRIPT_DIR}/logExtract.py" $appname "fetched/$QUERYNAME/"
         PRESULT=$?
         CATTEMPT=$(( $CATTEMPT + 1 ))
       done
@@ -182,7 +182,7 @@ for QUERYNAME in ${QUERIES}; do
       continue
     fi
     echo "Stopping dstat on ${host_name}"
-    < /dev/null ssh -n -f ${CURUSER}@${host_name} "pkill -f '.+/usr/bin/dstat.+'"
+    < /dev/null ssh -n -f "${CURUSER}@${host_name}" "pkill -f '.+/usr/bin/dstat.+'"
   done < "${SCRIPT_DIR}/config/hosts.txt"
   # Plus localhost
   echo "Stopping dstat on $CURHOST"
@@ -197,15 +197,15 @@ for QUERYNAME in ${QUERIES}; do
       continue
     fi
     echo "Fetching dstat stats from ${host_name}"
-    < /dev/null scp ${CURUSER}@${host_name}:/tmp/stats.${host_name}.csv fetched/$QUERYNAME/
+    < /dev/null scp "${CURUSER}@${host_name}:/tmp/stats.${host_name}.csv" "fetched/$QUERYNAME/"
   done < "${SCRIPT_DIR}/config/hosts.txt"
   #Plus localhost
   echo "Fetching dstat stats from $CURHOST"
-  cp /tmp/stats.${CURHOST}.csv fetched/$QUERYNAME/
+  cp "/tmp/stats.${CURHOST}.csv" "fetched/$QUERYNAME/"
 
   ####################################
   # Merge all dstat logs in a global cluster log #
   ####################################
-  python "${SCRIPT_DIR}/aggregateLog.py" fetched/$QUERYNAME/
+  python "${SCRIPT_DIR}/aggregateLog.py" "fetched/$QUERYNAME/"
 
 done
