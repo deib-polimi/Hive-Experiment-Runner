@@ -5,7 +5,7 @@ EXTERNALITER=1
 # Number of internal iteration for the single query
 INTERNALITER=2
 # A list of queries to execute in the single query run
-QUERIES="R1 R2 R3 R4"
+QUERIES="R3"
 
 
 ### Cluster-related stuff, change once ###
@@ -13,11 +13,13 @@ QUERIES="R1 R2 R3 R4"
 # TPC-DS dataset scale parameter
 SCALE=250
 # The hostname of the node hosting the Resource Manager
-MASTER=slave10
+MASTER=slave4 
 # User for ssh-ing into other nodes
 CURUSER=ubuntu
 # Path to Resource Manager log file
 LOG_PATH=/var/log/hadoop-yarn/yarn/@@RM_LOG@@
+# To use tcpdump logging, set to 1, 0 otherwise
+USE_TCPDUMP=1
 
 
 ### These should not be changed ###

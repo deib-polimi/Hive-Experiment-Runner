@@ -23,9 +23,17 @@ for QUERYNAME in ${QUERIES}; do
   # Renewed here and at every external loop, the incremental list is in the queries output folder
   rm -f "${SCRIPT_DIR}/scratch/apps.tmp"
 
-  ######################################################################
+  ####################################
+  # Calls tcp-dumper start.sh script #
+  ####################################
+  if [ $USE_TCPDUMP -eq 1 ]; then
+    echo 'Starting tcp-dumper start.sh'
+    ${SCRIPT_DIR}/tcp-dumper/start.sh $QUERYNAME
+  fi
+
+  ##########################################################################################
   # Start dstat on all hosts after closing possible other instances and cleaning old stats #
-  ######################################################################
+  ##########################################################################################
   echo "Stop old dstat processes, clean old stats and start sampling system stats on all hosts"
 
   while read host_name; do
@@ -99,9 +107,9 @@ for QUERYNAME in ${QUERIES}; do
         > "${tmp_file}" 2>&1
       TND=$(date +"%T.%3N")
 
-      ##########################################
+      #################################################
       # Save app name in permanent and temporary file #
-      ##########################################
+      #################################################
       while read -r line; do
         if [[ $line =~ .*(application_[0-9]+_[0-9]+).* ]]; then
           strresult=${BASH_REMATCH[1]}
@@ -117,16 +125,16 @@ for QUERYNAME in ${QUERIES}; do
       COUNTER=$(( $COUNTER + 1 ))
     done
 
-    ############################################################
+    #########################################################################
     # Wait some secs for flushing of previous logs, 2 mins should be enough #
-    ############################################################
+    #########################################################################
     echo "Waiting 120s for logs to be flushed."
     sleep 120s
     rm -f /tmp/log.txt
-    ##########################################################
+    ##########################################################################
     # For each app, fetch the logs and run the python script to get the time #
     # intervals for our analysis                                             #
-    ##########################################################
+    ##########################################################################
     while read appname; do
       echo "Going to fetch AM logs for $appname"
       yarn logs -applicationId $appname > fetched/$QUERYNAME/${appname}.AMLOG.txt
@@ -172,10 +180,18 @@ for QUERYNAME in ${QUERIES}; do
   done
 
   rm -f "${init_file}"
+  
+  ###########################################
+  # Calls tcp-dumper stopncollect.sh script #
+  ###########################################
+  if [ $USE_TCPDUMP -eq 1 ]; then
+    echo 'Starting tcp-dumper stopncollect.sh'
+    $SCRIPT_DIR/tcp-dumper/stopncollect.sh $QUERYNAME
+  fi
 
-  ###############################################################################################
+  ############################################################################################################################
   # Get all the stat only once at the end of everything, later we will take care of considering the time splits for each app #
-  ###############################################################################################
+  ############################################################################################################################
   echo "Stopping dstat on all hosts"
   while read host_name; do
     if [ "x${CURHOST}" = "x${host_name}" ]; then
@@ -203,9 +219,9 @@ for QUERYNAME in ${QUERIES}; do
   echo "Fetching dstat stats from $CURHOST"
   cp /tmp/stats.${CURHOST}.csv fetched/$QUERYNAME/
 
-  ####################################
+  ################################################
   # Merge all dstat logs in a global cluster log #
-  ####################################
+  ################################################
   python "${SCRIPT_DIR}/aggregateLog.py" fetched/$QUERYNAME/
 
 done
