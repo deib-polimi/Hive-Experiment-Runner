@@ -10,7 +10,7 @@ done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 # SETUP
-UPPER_DIR=`dirname ${SCRIPT_DIR}` 
+UPPER_DIR=$(dirname "${SCRIPT_DIR}")
 . "${UPPER_DIR}/config/variables.sh"
 CURHOST=$(hostname)
 QUERY_NAME=$1
@@ -32,11 +32,14 @@ echo "Starting tcpdump on all hosts..."
 while read host_name; do
   if [ "x${CURHOST}" != "x${host_name}" ]; then
     echo "Starting tcpdump on ${host_name}"
-    ssh -fn $CURUSER@$host_name "sudo nohup tcpdump -q -i eth0 \"udp and host ${host_name}\" > /tmp/dump.${host_name}.log 2> /dev/null < /dev/null &"
+    #ssh -fn ${CURUSER}@${host_name} "sudo nohup tcpdump -q -i eth0 host ${host_name} -s 128 'tcp[13] & 8!=0' > /tmp/dump.${host_name}.log 2> /dev/null < /dev/null &"
+    ssh -fn ${CURUSER}@${host_name} "sudo nohup tcpdump -q -i eth0 -s 128 host ${host_name} > /tmp/dump.${host_name}.log 2> /dev/null < /dev/null &"
+
   fi
 done < "${UPPER_DIR}/config/hosts.txt"
 # Plus localhost
-echo "Starting tcpdump on $CURHOST" # Definitive master dumps save location
-sudo tcpdump -q -i eth0 "udp and host ${CURHOST}" > fetched/${QUERY_NAME}/dump.${QUERY_NAME}.$CURHOST.log 2> /dev/null < /dev/null &
-echo "start.sh has finished its job for query ${QUERY_NAME}."
+echo "Starting tcpdump on ${CURHOST}" # Final master dumps save location
+sudo tcpdump -q -i eth0 host -s 128 ${host_name} > "fetched/${QUERY_NAME}/dump.${CURHOST}.log" 2> /dev/null < /dev/null &
+
+echo "$0 has finished its job with query ${QUERY_NAME}"
 echo

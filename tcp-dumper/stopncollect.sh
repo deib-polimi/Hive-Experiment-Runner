@@ -1,8 +1,6 @@
 #!/bin/bash
 # Run on master, stops and collects all tcpdump logs
 
-# DAFARE: essendo avviato per ogni query, devo salvare nella cartella della stessa query!
-
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
   DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
@@ -12,7 +10,7 @@ done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 # SETUP
-UPPER_DIR=`dirname $SCRIPT_DIR` 
+UPPER_DIR=$(dirname "${SCRIPT_DIR}")
 . "${UPPER_DIR}/config/variables.sh"
 CURHOST=$(hostname)
 QUERY_NAME=$1
@@ -25,7 +23,7 @@ echo "Stopping tcpdump on all hosts..."
 while read host_name; do
   if [ "x${CURHOST}" != "x${host_name}" ]; then
     echo "Stopping tcpdump on ${host_name}"
-    ssh -fn $CURUSER@$host_name "sudo sh -c 'pkill -f tcpdump' 2> /dev/null < /dev/null &"
+    ssh -fn ${CURUSER}@${host_name} "sudo sh -c 'pkill -f tcpdump' 2> /dev/null < /dev/null &"
   fi
 done < "${UPPER_DIR}/config/hosts.txt"
 # Plus localhost
@@ -41,8 +39,19 @@ echo "Fetching dumps now..."
 while read host_name; do
   if [ "x${CURHOST}" != "x${host_name}" ]; then
     echo "Fetching tcpdump dumps from ${host_name}"
-    scp $CURUSER@$host_name:/tmp/dump.$host_name.log fetched/$QUERY_NAME
+    scp ${CURUSER}@${host_name}:"/tmp/dump.${host_name}.log" "fetched/${QUERY_NAME}"
   fi
 done < "${UPPER_DIR}/config/hosts.txt"
-echo "stopncollect.sh has finished its job for query ${QUERY_NAME}."
+
+####################################
+# Removing dumps from /tmp folders #
+####################################
+while read host_name; do
+  if [ "x${CURHOST}" != "x${host_name}" ]; then
+    echo "Cleaning old tcpdump log on ${host_name}"
+    < /dev/null ssh -fn ${CURUSER}@${host_name} "rm -f /tmp/dump.*.log"
+  fi
+done < "${UPPER_DIR}/config/hosts.txt"
+
+echo "$0 has finished its job with query ${QUERY_NAME}"
 echo
