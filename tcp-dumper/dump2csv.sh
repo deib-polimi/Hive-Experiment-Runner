@@ -17,7 +17,7 @@ PFX='dump.' # groups *.csv by prefix
 i=0
 while read host_name; do
   # Deletes numbers following the type of host and inserts the strings in an array
-  str=$(echo $host_name | tr -cd '[[:alpha:]]')
+  str=$(echo $host_name | tr -d '[[:digit:]]')
   if [ $i -eq 0 ]; then # if it's first ride
     arrHosts[0]=$str
     let i=i+1
