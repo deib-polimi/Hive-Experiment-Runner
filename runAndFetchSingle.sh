@@ -222,6 +222,6 @@ for QUERYNAME in ${QUERIES}; do
   ################################################
   # Merge all dstat logs in a global cluster log #
   ################################################
-  python "${SCRIPT_DIR}/aggregateLog.py" fetched/$QUERYNAME/
+  python "${SCRIPT_DIR}/aggregateLog.py" "fetched/$QUERYNAME/"
 
 done
