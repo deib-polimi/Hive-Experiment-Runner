@@ -14,13 +14,13 @@ UPPER_DIR=$(dirname "${SCRIPT_DIR}")
 TARGET="$1"
 
 function turnon () {
-  curl -u ${AMBARI_USER}:${AMBARI_PASSWD} -i -H 'X-Requested-By: ambari' -X PUT -d \
+  curl -u "${AMBARI_USER}":"${AMBARI_PASSWD}" -i -H 'X-Requested-By: ambari' -X PUT -d \
     '{"HostRoles": {"state": "STARTED"}, "RequestInfo": {"context": "Start '"$TARGET"' via REST"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}' \
     http://$AMBARI/api/v1/clusters/$CLUSTER/hosts/$TARGET/host_components/NODEMANAGER
 }
 
 function turnoff () {
-  curl -u ${AMBARI_USER}:${AMBARI_PASSWD} -i -H 'X-Requested-By: ambari' -X PUT -d \
+  curl -u "${AMBARI_USER}":"${AMBARI_PASSWD}" -i -H 'X-Requested-By: ambari' -X PUT -d \
     '{"HostRoles": {"state": "INSTALLED"}, "RequestInfo": {"context": "Stop '"$TARGET"' via REST"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}' \
     http://$AMBARI/api/v1/clusters/$CLUSTER/hosts/$TARGET/host_components/NODEMANAGER
 }
