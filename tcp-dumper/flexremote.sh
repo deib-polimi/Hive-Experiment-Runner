@@ -35,7 +35,7 @@ elif [ ${newStatus} = 'RUNNING' ]; then
   if [[ ! -z $(echo `action` | grep "RUNNING") ]]; then
     echo "Server is already RUNNING."
   else
-	  echo "Server is STARTING."
+    echo "Server is STARTING."
   fi
 else
   echo 'Retry in a few seconds...' # httpErrorCode:503

@@ -48,7 +48,6 @@ rep="${rep}([0-9]+)?.[0-9]+"
 regex="([0-9]+:[0-9]+:[0-9]+.[0-9]+)\ IP\ ${rep}\ >\ ${rep}:.*\ ([0-9]+)"
 
 while read host_name; do
-  #echo $host_name
   for f in $(ls | grep "dump.${host_name}\.log"); do
     echo "On file: ${f}"
     header_in=0;

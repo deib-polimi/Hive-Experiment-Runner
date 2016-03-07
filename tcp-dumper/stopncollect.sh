@@ -13,13 +13,12 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 UPPER_DIR=$(dirname "${SCRIPT_DIR}")
 . "${UPPER_DIR}/config/variables.sh"
 CURHOST=$(hostname)
-QUERY_NAME=$1
+QUERY_NAME="$1"
 
-#######################################################################
-# Stop then starts tcpdump on all hosts declared in tcpdump-hosts.txt #
-#######################################################################
+###############################################################
+# Stop then starts tcpdump on all hosts declared in hosts.txt #
+###############################################################
 echo "Stopping tcpdump on all hosts..."
-
 while read host_name; do
   if [ "x${CURHOST}" != "x${host_name}" ]; then
     echo "Stopping tcpdump on ${host_name}"
@@ -54,4 +53,3 @@ while read host_name; do
 done < "${UPPER_DIR}/config/hosts.txt"
 
 echo "$0 has finished its job with query ${QUERY_NAME}"
-echo
