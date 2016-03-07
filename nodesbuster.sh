@@ -8,9 +8,8 @@ while [ -h "$SOURCE" ]; do
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-UPPER_DIR=$(dirname "${SCRIPT_DIR}")
 
-. "${UPPER_DIR}/config/variables.sh"
+. "${SCRIPT_DIR}/config/variables.sh"
 TARGET="$1"
 
 function turnon () {
@@ -26,8 +25,10 @@ function turnoff () {
 }
 
 
+usage_msg="usage: $0 [target] [turnoff|turnon]"
+
 if [ $# -ne 2 ]; then
-  echo "Usage: $0 [target] [turnoff|turnon]" >&2
+  echo "${usage_msg}" >&2
   exit 1
 fi
 
@@ -55,6 +56,7 @@ elif [ "x$2" = 'xturnon' ]; then
     fi
   done
 else
-  echo 'ERROR - BAD REQUEST' >&2
+  echo "error: unrecognized input argument" >&2
+  echo "${usage_msg}" >&2
   exit 1
 fi
