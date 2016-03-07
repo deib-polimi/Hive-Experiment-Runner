@@ -1,28 +1,32 @@
 #!/bin/bash
 # Start/Stop ComputeNodes via Ambari
 
-# SETUP
-USER='admin'
-PASS='admin'
-CLUSTER='MasterOfClusters'
-AMBARI="master:8080"
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+UPPER_DIR=$(dirname "${SCRIPT_DIR}")
+
+. "${UPPER_DIR}/config/variables.sh"
 TARGET="$1"
 
 function turnon () {
-  curl -u $USER:$PASS -i -H 'X-Requested-By: ambari' -X PUT -d \
+  curl -u ${AMBARI_USER}:${AMBARI_PASSWD} -i -H 'X-Requested-By: ambari' -X PUT -d \
     '{"HostRoles": {"state": "STARTED"}, "RequestInfo": {"context": "Start '"$TARGET"' via REST"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}' \
     http://$AMBARI/api/v1/clusters/$CLUSTER/hosts/$TARGET/host_components/NODEMANAGER
 }
 
 function turnoff () {
-  curl -u $USER:$PASS -i -H 'X-Requested-By: ambari' -X PUT -d \
+  curl -u ${AMBARI_USER}:${AMBARI_PASSWD} -i -H 'X-Requested-By: ambari' -X PUT -d \
     '{"HostRoles": {"state": "INSTALLED"}, "RequestInfo": {"context": "Stop '"$TARGET"' via REST"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}' \
     http://$AMBARI/api/v1/clusters/$CLUSTER/hosts/$TARGET/host_components/NODEMANAGER
 }
 
-### MAIN ###
 
-if [ $# -lt 2 ]; then
+if [ $# -ne 2 ]; then
   echo "Usage: $0 [target] [turnoff|turnon]" >&2
   exit 1
 fi

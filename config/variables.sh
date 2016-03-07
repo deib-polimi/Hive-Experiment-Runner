@@ -6,6 +6,8 @@ EXTERNALITER=1
 INTERNALITER=2
 # A list of queries to execute in the single query run
 QUERIES="R3"
+# To use tcpdump logging, set to 1, 0 otherwise
+USE_TCPDUMP=1
 
 
 ### Cluster-related stuff, change once ###
@@ -18,8 +20,14 @@ MASTER=slave4
 CURUSER=ubuntu
 # Path to Resource Manager log file
 LOG_PATH=/var/log/hadoop-yarn/yarn/@@RM_LOG@@
-# To use tcpdump logging, set to 1, 0 otherwise
-USE_TCPDUMP=1
+# Cluster name on the Ambari interface
+CLUSTER=Ambari
+# Ambari master node
+AMBARI="master:8080"
+# Ambari username
+AMBARI_USER=admin
+# Ambari password
+AMBARI_PASSWD=admin
 
 
 ### These should not be changed ###
