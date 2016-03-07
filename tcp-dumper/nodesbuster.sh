@@ -31,12 +31,14 @@ if [ $# -ne 2 ]; then
   exit 1
 fi
 
+### TODO: all these requests are not needed, you just read the JSON response
+###       and extract an URL to track completion
 flag=0
 if [ "x$2" = 'xturnoff' ]; then
   while [ $flag -ne 1 ]; do
-    if [[ ! -z $(turnoff | grep "200 OK") ]]; then
+    if [[ ! -z $(turnoff 2> /dev/null | grep "200 OK") ]]; then
       flag=1
-      echo "$2 correctly STOPPED"
+      echo "$TARGET correctly switched off"
     else
       echo "STOP: checking in 15 s"
       sleep 15s
@@ -44,9 +46,9 @@ if [ "x$2" = 'xturnoff' ]; then
   done
 elif [ "x$2" = 'xturnon' ]; then
   while [ $flag -ne 1 ]; do
-    if [[ ! -z $(turnon | grep "200 OK") ]]; then
+    if [[ ! -z $(turnon 2> /dev/null | grep "200 OK") ]]; then
       flag=1
-      echo "$2 correctly STARTED"
+      echo "$TARGET correctly switched on"
     else
       echo "START: checking in 30 s"
       sleep 30s
