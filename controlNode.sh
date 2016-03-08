@@ -8,9 +8,11 @@ while [ -h "$SOURCE" ]; do
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-
 . "${SCRIPT_DIR}/config/variables.sh"
-TARGET="$1"
+
+OPERATION="$1"
+TARGET="$2"
+usage_msg="usage: $0 stop|start target"
 
 
 turnon () {
@@ -64,14 +66,12 @@ extract_json () {
 }
 
 
-usage_msg="usage: $0 [target] [stop|start]"
-
 if [ $# -ne 2 ]; then
   echo "${usage_msg}" >&2
   exit 1
 fi
 
-case "x$2" in
+case "x$OPERATION" in
   "xstop")
     output=$(turnoff)
   ;;
