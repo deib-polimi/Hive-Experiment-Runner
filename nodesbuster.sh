@@ -12,51 +12,95 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 . "${SCRIPT_DIR}/config/variables.sh"
 TARGET="$1"
 
-function turnon () {
-  curl -u "${AMBARI_USER}":"${AMBARI_PASSWD}" -i -H 'X-Requested-By: ambari' -X PUT -d \
+
+turnon () {
+  curl -u "${AMBARI_USER}":"${AMBARI_PASSWD}" -s -i -H 'X-Requested-By: ambari' -X PUT -d \
     '{"HostRoles": {"state": "STARTED"}, "RequestInfo": {"context": "Start '"$TARGET"' via REST"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}' \
     http://$AMBARI/api/v1/clusters/$CLUSTER/hosts/$TARGET/host_components/NODEMANAGER
 }
 
-function turnoff () {
-  curl -u "${AMBARI_USER}":"${AMBARI_PASSWD}" -i -H 'X-Requested-By: ambari' -X PUT -d \
+turnoff () {
+  curl -u "${AMBARI_USER}":"${AMBARI_PASSWD}" -s -i -H 'X-Requested-By: ambari' -X PUT -d \
     '{"HostRoles": {"state": "INSTALLED"}, "RequestInfo": {"context": "Stop '"$TARGET"' via REST"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}' \
     http://$AMBARI/api/v1/clusters/$CLUSTER/hosts/$TARGET/host_components/NODEMANAGER
 }
 
+request () {
+  curl -u "${AMBARI_USER}":"${AMBARI_PASSWD}" -s -i -H 'X-Requested-By: ambari' "$1"
+}
 
-usage_msg="usage: $0 [target] [turnoff|turnon]"
+get_from_json_one () {
+  filename=/tmp/extremelyunusualandlongfilename.py
+  cat > $filename << EOF
+import json
+import sys
+object = json.load(sys.stdin)
+try:
+    print(object["$1"])
+except KeyError:
+    pass
+EOF
+  python $filename
+  rm $filename
+}
+
+get_from_json_two () {
+  filename=/tmp/extremelyunusualandlongfilename.py
+  cat > $filename << EOF
+import json
+import sys
+object = json.load(sys.stdin)
+try:
+    print(object["$1"]["$2"])
+except KeyError:
+    pass
+EOF
+  python $filename
+  rm $filename
+}
+
+extract_json () {
+  awk 'index($0, "{") { doPrint = 1 } doPrint { print }'
+}
+
+
+usage_msg="usage: $0 [target] [stop|start]"
 
 if [ $# -ne 2 ]; then
   echo "${usage_msg}" >&2
   exit 1
 fi
 
-### TODO: all these requests are not needed, you just read the JSON response
-###       and extract an URL to track completion
-flag=0
-if [ "x$2" = 'xturnoff' ]; then
-  while [ $flag -ne 1 ]; do
-    if [[ ! -z $(turnoff 2> /dev/null | grep "200 OK") ]]; then
-      flag=1
-      echo "$TARGET correctly switched off"
-    else
-      echo "STOP: checking in 15 s"
-      sleep 15s
-    fi
-  done
-elif [ "x$2" = 'xturnon' ]; then
-  while [ $flag -ne 1 ]; do
-    if [[ ! -z $(turnon 2> /dev/null | grep "200 OK") ]]; then
-      flag=1
-      echo "$TARGET correctly switched on"
-    else
-      echo "START: checking in 30 s"
-      sleep 30s
-    fi
-  done
-else
-  echo "error: unrecognized input argument" >&2
-  echo "${usage_msg}" >&2
-  exit 1
-fi
+case "x$2" in
+  "xstop")
+    output=$(turnoff)
+  ;;
+  "xstart")
+    output=$(turnon)
+  ;;
+  *)
+    echo "error: unrecognized input argument" >&2
+    echo "${usage_msg}" >&2
+    exit 1
+  ;;
+esac
+
+unset flag
+case $(echo "$output" | head -n 1 | awk '{ print $2 }') in
+  200)
+    flag=y
+  ;;
+  202)
+    url=$(echo "$output" | extract_json | get_from_json_one href)
+  ;;
+  *)
+    echo "error: something went wrong" >&2
+    exit 1
+  ;;
+esac
+
+while test -z ${flag:+set}; do
+  sleep 2s
+  state=$(request "$url" | extract_json | get_from_json_two Requests request_status)
+  test "x$state" = "xCOMPLETED" && flag=y
+done
