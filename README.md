@@ -1,6 +1,7 @@
-# script-fabio
-This `git` repository contains the dreaded scripts written by Fabio to
-launch Hive queries and collect their logs.
+# Hive Experiment Runner
+This repository contains scripts to launch Hive queries and collect their logs.
+All code in this repository is licensed under the
+[Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
 ## Take a Look Around
 
@@ -9,7 +10,8 @@ launch Hive queries and collect their logs.
 * `queries/` stores data about queries;
 * `inst/` hosts scripts to ease installation on Instacluster;
 * `gantt/` holds scripts to read task durations from aggregated log data and produce
-           Gantt charts.
+           Gantt charts;
+* `tcp-dumper` stores scripts to monitor the network through `tcpdump`.
 
 ## Getting Started
 
