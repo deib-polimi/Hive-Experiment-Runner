@@ -13,6 +13,7 @@
 % limitations under the License.
 
 
+
 function stats_struct = csv2struct(filename)
 
     %   csv2struct function imports and reads a .csv file with a single line of comma separated
@@ -21,25 +22,29 @@ function stats_struct = csv2struct(filename)
     %   Example:
     %   dstats = csv2struct('stats.master1.csv');
 
-    if nargin < 2
+    if nargin == 1
         startRow = 7;
         delimiter = ',';
     else
-        error('csv2strct requires 1 arguments.\n');
+        error('csv2struct requires one argument');
     end
     
-    fileID =fopen(filename,'r');
+    fileID = fopen(filename,'r');
     
     for i = 1:startRow
         headers = fgetl(fileID);
     end
     
-    % Parse the header string into separate headers
-    headcell = textscan(headers ,'%q','delimiter',delimiter);
+    % Parse the header string (6th row) into separate headers.
+    headcell = textscan(headers ,'%s','delimiter',delimiter);
+    
+    % In general cell arrays work just like N-dimensional arrays with the exception of 
+    % the use of ‘{’ and ‘}’ as allocation and indexing operators.
     headcell = headcell{1};
     
-    % Read the first line of data to determine the column data types
-    data = textscan(fileID,'%s',length(headcell),'delimiter',delimiter);
+    % Read the first line of data (7th row) to determine the column data types
+    first_row = fgetl(fileID);
+    data = textscan(first_row,'%s',length(headcell),'delimiter',delimiter);
     data = data{1};
     
     stats_struct = [];
@@ -47,12 +52,11 @@ function stats_struct = csv2struct(filename)
     strFormat = [];
     for i = 1:length(data)
         % If str2double returns a numeric value, so the column will be numeric,
-        % otherwise if str2num returns empty, so the column will be text
+        % otherwise if str2double returns empty, so the column will be text
         if ~isnan(str2double(data{i}))
             colFormat = '%f ';
         else
-             colFormat = '%q ';
-
+             colFormat = '%s ';
         end
         strFormat = [strFormat colFormat];  %#ok<AGROW>
     end
@@ -68,28 +72,16 @@ function stats_struct = csv2struct(filename)
         
         header = headcell{i};
         
-
         % Remove ( " ) parts of headers
         header = strrep(header,'"','');
-
         
         if i ~= 1   
             stats_struct.(header) = data{i};
         else
-%           data{i} = datenum(data{i}, 'dd-MM HH:mm:ss');
-            data{i} = datetime(data{i},'InputFormat','dd-MM HH:mm:ss')
-%           data{i} = cell2struct(data{i}, 'time' ,2);
-%           data{i} = todatenum(data{i});  
-            stats_struct.(header) = data{i};
+
+           data{i} = datenum(data{i} , 'dd-mm HH:MM:SS');  
+           stats_struct.(header) = data{i};
 
         end
-        
     end
-  
-
- 
-   
-    
-    
-    
-    
+  endfunction
