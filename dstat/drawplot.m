@@ -12,86 +12,37 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-function drawplot(strt)
+function drawplot(strt , varargin)
 
-    % drawplot() receive in input struct to plot the fields. use inputparser class 
-    % to parsing the varargin.
+    % This function receives as input a struct and the string argoments.
+    % The first argoment after struct must be a time.
+    %   Type code to run:
+    %   Example:      
+    %         drawplot(strt,'time','usr','sys','idl','wai')
 
-     if nargin ~=1
-        error('drawplot requires 1 struct arguments.\n');
-     end
-    % creat object
-    p = inputParser();
     if ~isstruct(strt)
-        error('Input is not string, insert the string name of the variables of workspace.');
+      msgerror = strcat('''',inputname(1),''''' is not a structure!!');
+      error(msgerror);
+    end
+%   varargin = cell 1x4 : varargin{1,1}, varargin{1,2}....
+    c = struct2cell(strt); %15x1 cell array value= c{1,1},c{2,1},...
+    varnames = fieldnames(strt); % 15x1 cell names , time=varnames{1,1} , usr=varnames{2,1},..
+
+    cellLegend = cell(1 , length(varargin)-1);  %initialize of cell array to use in Legend().
+    if strcmp(varargin{1,1} , varnames{1,1}) == 0  % the first argoment after struct must be 'time' .
+        msgerror = strcat('''',varargin{1,1},''''' is not a time!! The first argoment after struct must be time.');
+        error(msgerror);
     else
-        addRequired(p,'x',@isstruct);
-    end
-    parse(p,strt);
-    chois = menu('select a plot:','CPU','NETWORK','MEMORY');
-    switch chois
-      case 1
-        cpuplot(strt.time,strt.usr,strt.sys,strt.idl,strt.wai);
-      case 2
-        networkplot(strt.time,strt.recv,strt.send);
-      case 3
-        memoryplot(strt.time,strt.used,strt.buff,strt.cach,strt.free)
-    end
-    
-    % The function to plot Flexiant Cluster CPU last hour
-    function cpuplot(time,usr,sys,idl,wai);
-        % Create figure
-%        figure1 = figure();
-        % Create axes
-%        axes1 = axes('Parent',figure1);
-        plot(time, sys , 'LineWidth',3);
-        hold on;
-        plot(time, usr , 'LineWidth',3);
-        hold on;
-        plot(time, idl , 'LineWidth',3);
-        hold on;
-        plot(time, wai , 'LineWidth',3);
-        hold on;
-        datetick('x','HH:MM');
-        title('Flexiant Cluster CPU last hour');
-        ylabel({'Percent'},'HorizontalAlignment','center','FontWeight','bold','FontSize',18);
-        legend ('usr','sys','idl','wai', 'location', 'southoutside');
-    end
-    
-    % the function to plot Flexiant Cluster NETWORK last hour.
-    function networkplot(time,recv,send)
-        plot(time , recv , 'LineWidth',4);
-        hold on;
-        datetick('x','HH:MM');
-        plot(time , send , 'LineWidth',4);
-        hold on ;
-        datetick('x','HH:MM');
-        title('Flexiant Cluster NETWORK last hour');
-        ylabel({'Bytes/sec'},'HorizontalAlignment','center','FontWeight','bold','FontSize',18);
-        legend ('recv','send', 'location', 'southoutside');
-    end
-    
-    % the function to plot Flexiant Cluster MEMORY last hour.
-    function memoryplot(time,used,buff,cach,free)
-        clf;
-        colororder = get (gca, 'colororder');
-        plot(time , used);
-        hold on;
-        plot(time , buff);
-        hold on;
-        plot(strt.time , strt.cach);
-        hold on;
-        plot(time , free);
-        hold off;
-        datetick('x','HH:MM');
-        title('Flexiant Cluster MEMORY last hour');
-        ylabel({'Bytes'},'HorizontalAlignment','center','FontWeight','bold','FontSize',18);
-        legend ('used','buff','cach','free', 'location', 'southoutside');
+        for i=2:length(varargin)  % i=2 because the first argoment is time.
+                idx = find(strcmp(varargin{1,i} , varnames));
+                if ~isempty(idx)
+                    stem(c{1,1},c{idx}  , 'LineWidth',3); 
+                    datetick('x','HH:MM');
+                    hold all;
+                    cellLegend(1,i-1) = varnames(idx,1);
+                    hold all;
+                end
+         end
+         legend (cellLegend, 'location', 'southwestoutside');
     end
 
-end
-
-
-
-  
-  
