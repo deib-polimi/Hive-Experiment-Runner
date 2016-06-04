@@ -6,12 +6,13 @@ All code in this repository is licensed under the
 ## Take a Look Around
 
 * `config/` stores the configuration files;
-* `scratch/` hosts temporary files created by the scripts;
-* `queries/` stores data about queries;
-* `inst/` hosts scripts to ease installation on Instacluster;
+* `dstat/` hosts functions to handle `dstat`-created files;
 * `gantt/` holds scripts to read task durations from aggregated log data and produce
            Gantt charts;
-* `tcp-dumper` stores scripts to monitor the network through `tcpdump`.
+* `inst/` stores scripts to ease installation on Instacluster;
+* `queries/` provides data about queries;
+* `scratch/` hosts temporary files created by the scripts;
+* `tcp-dumper/` stores scripts to monitor the network through `tcpdump`.
 
 ## Getting Started
 
