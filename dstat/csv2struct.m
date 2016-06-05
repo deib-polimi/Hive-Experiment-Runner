@@ -18,7 +18,7 @@
 ##
 ## Read dstat data from @var{filename} and return it as a struct, @var{stats}.
 ##
-## @seealso{drawplot}
+## @seealso{draw_dstat}
 ## @end deftypefn
 
 function stats = csv2struct (filename)
