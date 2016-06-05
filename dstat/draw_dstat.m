@@ -14,18 +14,19 @@
 ## limitations under the License.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} {} draw_dstat (@var{stats}, @var{fields})
-## @deftypefnx {Function File} {} draw_dstat (@var{stats}, @var{fields}, @var{x})
+## @deftypefn {Function File} {@var{h} =} draw_dstat (@var{stats}, @var{fields})
+## @deftypefnx {Function File} {@var{h} =} draw_dstat (@var{stats}, @var{fields}, @var{x})
 ##
 ## Plot data in the @var{stats} struct.
 ## @var{fields} is a cell array of strings containing the field names to plot.
 ## The x-axis defaults to "time", but you can optionally override this
 ## behavior with the third optional argument.
+## Return @var{h}, a handle to the generated figure.
 ##
 ## @seealso{csv2struct}
 ## @end deftypefn
 
-function draw_dstat (stats, fields, x)
+function h = draw_dstat (stats, fields, x)
 
 if (isstruct (stats))
   if (iscellstr (fields))
@@ -41,17 +42,22 @@ if (isstruct (stats))
     endif
     x = stats.(x);
 
-    figure;
+    if (nargout == 1)
+      h = figure;
+    else
+      figure;
+    endif
     hold all;
     for (ii = 1:numel (fields))
       field = fields{ii};
-      stem (x, stats.(field), "LineWidth", 3);
+      plot (x, stats.(field), "LineWidth", 2);
       if (time)
         datetick ("x", "HH:MM");
       endif
     endfor
 
     grid on;
+    axis;
     legend (fields, "location", "eastoutside");
   else
     error ("draw_dstat: FIELDS should be a cell array of strings");
