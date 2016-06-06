@@ -1,6 +1,6 @@
 #!/bin/sh
 
-## Copyright 2015 Eugenio Gianniti
+## Copyright 2015-2016 Eugenio Gianniti
 ##
 ## Licensed under the Apache License, Version 2.0 (the "License");
 ## you may not use this file except in compliance with the License.
@@ -29,15 +29,18 @@ SCALE=$(printf '%d' "$1")
 
 SCRATCH_DIR="$2"
 
-INITIAL_DIR=$(pwd)
+SOURCE="$0"
+while [ -L "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [ $SOURCE != /* ] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd "${HOME}"
 git clone https://github.com/hortonworks/hive-testbench.git
-cd hive-testbench/tpcds-gen
-wget home.deib.polimi.it/arizzi/tpcds_kit.zip
-cd ..
+cp "${DIR}"/tpcds_kit.zip hive-testbench/tpcds-gen
+cd hive-testbench
 sudo apt-get -y install gcc make
 ./tpcds-build.sh
 ./tpcds-setup.sh "${SCALE}" "${SCRATCH_DIR}"
-
-cd "${INITIAL_DIR}"
