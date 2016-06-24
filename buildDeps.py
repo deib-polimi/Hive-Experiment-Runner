@@ -16,13 +16,10 @@
 # This will write on file the dependencies of the vertices (serialized)
 # It will run just once for the given query, since every run would be the same
 # Args: file with hive explain output, path to destination file
-try:
-  import cPickle as pickle
-except:
-  import pickle
+import json
+import os
 import re
 import sys
-import os
 
 query = str(sys.argv[1])
 path = str(sys.argv[2])
@@ -52,7 +49,7 @@ with open (query, "r") as infile:
       for dep in deps:
         found = new_dependency.search (dep)
         if found:
-          dep = found.group(1)
+          dep = found.group (1)
         else:
           print "Unexpected vertex name: {dep}".format (dep=dep)
           sys.exit (-1)
@@ -62,7 +59,7 @@ with open (query, "r") as infile:
     sys.exit (-1)
 
 with open (path, "w") as outfile:
-  outfile.write (pickle.dumps (dependencies))
+  outfile.write (json.dumps (dependencies))
 
 print "List of dependencies: "
 print dependencies

@@ -68,7 +68,7 @@ for QUERYNAME in ${QUERIES}; do
         > "${init_file}"
       explain=$(hive -i "${init_file}" -f "${SCRIPT_DIR}/scratch/deleteme.tmp")
       echo "${explain}" > "${SCRIPT_DIR}/scratch/deleteme.tmp"
-      python "${SCRIPT_DIR}/buildDeps.py" "${SCRIPT_DIR}/scratch/deleteme.tmp" fetched/$QUERYNAME/dependencies.bin
+      python "${SCRIPT_DIR}/buildDeps.py" "${SCRIPT_DIR}/scratch/deleteme.tmp" "fetched/$QUERYNAME/dependencies.json"
       echo "Dependencies loaded in fetched/$QUERYNAME/dependencies.bin"
       rm "${SCRIPT_DIR}/scratch/deleteme.tmp"
     else
