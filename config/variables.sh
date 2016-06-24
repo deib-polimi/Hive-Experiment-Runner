@@ -6,9 +6,10 @@ EXTERNALITER=1
 INTERNALITER=2
 # A list of queries to execute in the single query run
 QUERIES="R3"
-# To use tcpdump logging, set to 1, 0 otherwise
-USE_TCPDUMP=1
-
+# To use tcpdump logging, set to 'yes'
+USE_TCPDUMP=no
+# To use dstat logging, set to 'yes'
+USE_DSTAT=yes
 
 ### Cluster-related stuff, change once ###
 

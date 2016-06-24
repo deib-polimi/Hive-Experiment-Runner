@@ -41,12 +41,15 @@ for QUERYNAME in ${QUERIES}; do
   ####################################
   # Calls tcp-dumper start.sh script #
   ####################################
-  if [ $USE_TCPDUMP -eq 1 ]; then
+  if [ "x${USE_TCPDUMP}" = "xyes" ]; then
     echo 'Starting tcp-dumper start.sh'
-    ${SCRIPT_DIR}/tcp-dumper/start.sh $QUERYNAME
+    "${SCRIPT_DIR}/tcp-dumper/start.sh" $QUERYNAME
   fi
 
-  "${SCRIPT_DIR}/dstat/start.sh" "${SCRIPT_DIR}"
+  if [ "x${USE_DSTAT}" = "xyes" ]; then
+    echo 'Starting dstat start.sh'
+    "${SCRIPT_DIR}/dstat/start.sh" "${SCRIPT_DIR}"
+  fi
 
   while [ $EXTERNALCOUNTER -le $EXTERNALITER ]; do
     COUNTER=1
@@ -157,15 +160,15 @@ for QUERYNAME in ${QUERIES}; do
   done
 
   rm -f "${init_file}"
-  
-  ###########################################
-  # Calls tcp-dumper stopncollect.sh script #
-  ###########################################
-  if [ $USE_TCPDUMP -eq 1 ]; then
+
+  if [ "x${USE_TCPDUMP}" = "xyes" ]; then
     echo 'Starting tcp-dumper stopncollect.sh'
-    $SCRIPT_DIR/tcp-dumper/stopncollect.sh $QUERYNAME
+    "$SCRIPT_DIR/tcp-dumper/stopncollect.sh" $QUERYNAME
   fi
 
-  "${SCRIPT_DIR}/dstat/stopncollect.sh" "${SCRIPT_DIR}" "fetched/$QUERYNAME/"
+  if [ "x${USE_DSTAT}" = "xyes" ]; then
+    echo 'Starting dstat stopncollect.sh'
+    "${SCRIPT_DIR}/dstat/stopncollect.sh" "${SCRIPT_DIR}" "fetched/$QUERYNAME/"
+  fi
 
 done
