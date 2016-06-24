@@ -43,7 +43,7 @@ for QUERYNAME in ${QUERIES}; do
   ####################################
   if [ "x${USE_TCPDUMP}" = "xyes" ]; then
     echo 'Starting tcp-dumper start.sh'
-    "${SCRIPT_DIR}/tcp-dumper/start.sh" $QUERYNAME
+    "${SCRIPT_DIR}/tcp-dumper/start.sh" "${SCRIPT_DIR}" "fetched/$QUERYNAME"
   fi
 
   if [ "x${USE_DSTAT}" = "xyes" ]; then
@@ -163,12 +163,12 @@ for QUERYNAME in ${QUERIES}; do
 
   if [ "x${USE_TCPDUMP}" = "xyes" ]; then
     echo 'Starting tcp-dumper stopncollect.sh'
-    "$SCRIPT_DIR/tcp-dumper/stopncollect.sh" $QUERYNAME
+    "$SCRIPT_DIR/tcp-dumper/stopncollect.sh" "${SCRIPT_DIR}" "fetched/$QUERYNAME"
   fi
 
   if [ "x${USE_DSTAT}" = "xyes" ]; then
     echo 'Starting dstat stopncollect.sh'
-    "${SCRIPT_DIR}/dstat/stopncollect.sh" "${SCRIPT_DIR}" "fetched/$QUERYNAME/"
+    "${SCRIPT_DIR}/dstat/stopncollect.sh" "${SCRIPT_DIR}" "fetched/$QUERYNAME"
   fi
 
 done

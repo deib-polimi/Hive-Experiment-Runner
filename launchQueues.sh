@@ -27,22 +27,34 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 applist="${SCRIPT_DIR}/scratch/apps.tmp"
 rm -f "$applist"
 
+DEST_DIR=fetched/session
+
 if [ "x${USE_DSTAT}" = "xyes" ]; then
   echo 'Starting dstat start.sh'
   "${SCRIPT_DIR}/dstat/start.sh" "${SCRIPT_DIR}"
+fi
+
+if [ "x${USE_TCPDUMP}" = "xyes" ]; then
+  echo 'Starting tcp-dumper start.sh'
+  "${SCRIPT_DIR}/tcp-dumper/start.sh" "${SCRIPT_DIR}" "${DEST_DIR}"
 fi
 
 while read line; do
   "${SCRIPT_DIR}/singleJob.sh" ${line} &
 done < "${SCRIPT_DIR}/config/ssdata.conf"
 
+if [ "x${USE_TCPDUMP}" = "xyes" ]; then
+  echo 'Starting tcp-dumper stopncollect.sh'
+  "$SCRIPT_DIR/tcp-dumper/stopncollect.sh" "${SCRIPT_DIR}" "${DEST_DIR}"
+fi
+
 if [ "x${USE_DSTAT}" = "xyes" ]; then
   echo 'Starting dstat stopncollect.sh'
-  "${SCRIPT_DIR}/dstat/stopncollect.sh" "${SCRIPT_DIR}" "fetched/session/"
+  "${SCRIPT_DIR}/dstat/stopncollect.sh" "${SCRIPT_DIR}" "${DEST_DIR}"
 fi
 
 while read appId; do
-  yarn logs -applicationId "$appId" > fetched/session/"$appId".AMLOG.txt
+  yarn logs -applicationId "$appId" > "${DEST_DIR}/${appId}.AMLOG.txt"
 done < "$applist"
 
 rm -f "$applist"
