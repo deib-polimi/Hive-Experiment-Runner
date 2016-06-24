@@ -36,7 +36,7 @@ if [ ! -d fetched/session ]; then
   mkdir -p fetched/session
 fi
 
-out=$(mktemp --tmpdir=fetched/session/ -q "${USERNAME}_${QUERYNAME}_${QUEUE}_XXXXX.txt")
+out=$(mktemp --tmpdir=fetched/session/ -q "${USERNAME}_${QUERYNAME}_${QUEUE}_XXXXX.csv")
 
 while [ ! -f "${STOP_FLAG}" ]; do
   sql=$(mktemp --tmpdir="${SCRIPT_DIR}/scratch/" -q "${USERNAME}_${QUEUE}_${QUERYNAME}.XXXXX.sql")
@@ -54,6 +54,7 @@ while [ ! -f "${STOP_FLAG}" ]; do
     if [[ "$line" =~ .*(application_[0-9]+_[0-9]+).* ]]; then
       strresult=${BASH_REMATCH[1]}
       echo "${strresult},${TST},${TND}" >> "${out}"
+      echo "$strresult" >> "${SCRIPT_DIR}/scratch/apps.tmp"
       break
     fi
   done < "${tmp}"

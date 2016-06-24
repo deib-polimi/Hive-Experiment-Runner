@@ -22,6 +22,19 @@ while [ -h "$SOURCE" ]; do
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+applist="${SCRIPT_DIR}/scratch/apps.tmp"
+rm -f "$applist"
+
+"${SCRIPT_DIR}/dstat/start.sh" "${SCRIPT_DIR}"
+
 while read line; do
   "${SCRIPT_DIR}/singleJob.sh" ${line} &
 done < ${SCRIPT_DIR}/config/ssdata.conf
+
+"${SCRIPT_DIR}/dstat/stopncollect.sh" "${SCRIPT_DIR}" "fetched/session/"
+
+while read appId; do
+  yarn logs -applicationId "$appId" > fetched/session/"$appId".AMLOG.txt
+done < "$applist"
+
+rm -f "$applist"

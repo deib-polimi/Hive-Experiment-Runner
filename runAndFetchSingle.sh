@@ -46,45 +46,7 @@ for QUERYNAME in ${QUERIES}; do
     ${SCRIPT_DIR}/tcp-dumper/start.sh $QUERYNAME
   fi
 
-  ##########################################################################################
-  # Start dstat on all hosts after closing possible other instances and cleaning old stats #
-  ##########################################################################################
-  echo "Stop old dstat processes, clean old stats and start sampling system stats on all hosts"
-
-  while read host_name; do
-    if [ "x${CURHOST}" = "x${host_name}" ]; then
-      continue
-    fi
-    echo "Stopping dstat on ${host_name}"
-    < /dev/null ssh -n -f ${CURUSER}@${host_name} "pkill -f '.+/usr/bin/dstat.+'"
-  done < "${SCRIPT_DIR}/config/hosts.txt"
-  # Plus localhost
-  echo "Stopping dstat on $CURHOST"
-  pkill -f '.+/usr/bin/dstat.+'
-
-  while read host_name; do
-    if [ "x${CURHOST}" = "x${host_name}" ]; then
-      continue
-    fi
-    echo "Cleaning old dstat log on ${host_name}"
-    < /dev/null ssh -n -f ${CURUSER}@${host_name} "rm -f /tmp/*.csv"
-  done < "${SCRIPT_DIR}/config/hosts.txt"
-  # Plus localhost
-  rm -f /tmp/*.csv
-
-  while read host_name; do
-    if [ "x${CURHOST}" = "x${host_name}" ]; then
-      continue
-    fi
-    echo "Starting dstat on ${host_name}"
-    < /dev/null ssh -n -f ${CURUSER}@${host_name} "nohup dstat -tcmnd --output /tmp/stats.${host_name}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &"
-  done < "${SCRIPT_DIR}/config/hosts.txt"
-  #Plus localhost
-  echo "Starting dstat on $CURHOST"
-  dstat -tcmnd --output /tmp/stats.${CURHOST}.csv 5 3000 > /dev/null 2> /dev/null < /dev/null &
-  echo "Done, wait 5 secs to be sure they are all running."
-  sleep 5s
-
+  "${SCRIPT_DIR}/dstat/start.sh" "${SCRIPT_DIR}"
 
   while [ $EXTERNALCOUNTER -le $EXTERNALITER ]; do
     COUNTER=1
@@ -204,39 +166,6 @@ for QUERYNAME in ${QUERIES}; do
     $SCRIPT_DIR/tcp-dumper/stopncollect.sh $QUERYNAME
   fi
 
-  ############################################################################################################################
-  # Get all the stat only once at the end of everything, later we will take care of considering the time splits for each app #
-  ############################################################################################################################
-  echo "Stopping dstat on all hosts"
-  while read host_name; do
-    if [ "x${CURHOST}" = "x${host_name}" ]; then
-      continue
-    fi
-    echo "Stopping dstat on ${host_name}"
-    < /dev/null ssh -n -f ${CURUSER}@${host_name} "pkill -f '.+/usr/bin/dstat.+'"
-  done < "${SCRIPT_DIR}/config/hosts.txt"
-  # Plus localhost
-  echo "Stopping dstat on $CURHOST"
-  pkill -f '.+/usr/bin/dstat.+'
-
-  echo "Done, wait 10 secs to be sure they all stopped."
-  sleep 10s
-
-  echo "Fetch stats now"
-  while read host_name; do
-    if [ "x${CURHOST}" = "x${host_name}" ]; then
-      continue
-    fi
-    echo "Fetching dstat stats from ${host_name}"
-    < /dev/null scp ${CURUSER}@${host_name}:/tmp/stats.${host_name}.csv fetched/$QUERYNAME/
-  done < "${SCRIPT_DIR}/config/hosts.txt"
-  #Plus localhost
-  echo "Fetching dstat stats from $CURHOST"
-  cp /tmp/stats.${CURHOST}.csv fetched/$QUERYNAME/
-
-  ################################################
-  # Merge all dstat logs in a global cluster log #
-  ################################################
-  python "${SCRIPT_DIR}/aggregateLog.py" "fetched/$QUERYNAME/"
+  "${SCRIPT_DIR}/dstat/stopncollect.sh" "${SCRIPT_DIR}" "fetched/$QUERYNAME/"
 
 done
