@@ -43,7 +43,7 @@ while read line; do
   "${SCRIPT_DIR}/singleJob.sh" ${line} &
   pids="$pids $!"
 done < "${SCRIPT_DIR}/config/ssdata.conf"
-trap "kill -15 $pids" 0 1 2 15
+trap "kill -15 $pids" 1 2 15
 wait
 
 if [ "x${USE_TCPDUMP}" = "xyes" ]; then

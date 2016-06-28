@@ -59,7 +59,7 @@ for QUERYNAME in ${QUERIES}; do
     # Get query explain from hive to build dependencies #
     #####################################################
     init_file="${SCRIPT_DIR}/scratch/init.sql"
-    if [ ! -f fetched/$QUERYNAME/dependencies.bin ]; then
+    if [ ! -f fetched/$QUERYNAME/dependencies.json ]; then
       q=$(cat "${SCRIPT_DIR}/queries/${QUERYNAME}.${QUERYEXTENSION}")
       explain_query="explain ${q}"
       echo "$explain_query" > "${SCRIPT_DIR}/scratch/deleteme.tmp"
@@ -69,7 +69,7 @@ for QUERYNAME in ${QUERIES}; do
       explain=$(hive -i "${init_file}" -f "${SCRIPT_DIR}/scratch/deleteme.tmp")
       echo "${explain}" > "${SCRIPT_DIR}/scratch/deleteme.tmp"
       python "${SCRIPT_DIR}/buildDeps.py" "${SCRIPT_DIR}/scratch/deleteme.tmp" "fetched/$QUERYNAME/dependencies.json"
-      echo "Dependencies loaded in fetched/$QUERYNAME/dependencies.bin"
+      echo "Dependencies saved in fetched/$QUERYNAME/dependencies.json"
       rm "${SCRIPT_DIR}/scratch/deleteme.tmp"
     else
       echo "Dependencies file already there, skipping..."
