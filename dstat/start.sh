@@ -17,6 +17,8 @@
 SCRIPT_DIR="${1:?missing script directory}"
 CURHOST=$(hostname)
 
+. "${SCRIPT_DIR}/config/variables.sh"
+
 echo "Stop old dstat processes, clean old stats and start sampling system stats on all hosts"
 
 while read host_name; do

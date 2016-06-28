@@ -18,6 +18,8 @@ SCRIPT_DIR="${1:?missing scripts directory}"
 DEST_DIR="${2:?missing destination directory}"
 CURHOST=$(hostname)
 
+. "${SCRIPT_DIR}/config/variables.sh"
+
 #########################################
 # Stop then starts tcpdump on all hosts #
 #########################################

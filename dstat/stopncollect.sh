@@ -18,6 +18,8 @@ SCRIPT_DIR="${1:?missing script directory}"
 DEST_DIR="${2:?missing destination directory}"
 CURHOST=$(hostname)
 
+. "${SCRIPT_DIR}/config/variables.sh"
+
 echo "Stopping dstat on all hosts"
 while read host_name; do
   if [ "x${CURHOST}" = "x${host_name}" ]; then
